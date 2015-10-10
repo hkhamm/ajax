@@ -1,6 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
 <html> <head>
-<title>ACP Controle Times</title>
+<title>ACP checkpoint Times</title>
 
   <!-- 'viewport' is used by bootstrap to respond to device size -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -29,7 +29,7 @@
 <!-- bootstrap requires a 'container' div around content -->
 <div class="container">
 
-<h1>ACP Brevet Closing times</h1>
+<h1>ACP Brevet Time Calculator</h1>
 
   <!--
   -- If there are any warnings or other messages from a prior
@@ -50,46 +50,109 @@
 {% endwith %}
 
 <!-- Design on bootstrap grid -->
+
+<form role="form">
+  <div class="row">
+    <div class="col-md-2">
+      <div class="dropdown">
+          <button class="btn btn-default dropdown-toggle" type="button"
+            data-toggle="dropdown">
+            Brevet distance:
+            <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" id="distances">
+            <li><a href="#">200</a></li>
+            <li><a href="#">300</a></li>
+            <li><a href="#">400</a></li>
+            <li><a href="#">600</a></li>
+            <li><a href="#">1000</a></li>
+          </ul>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <span class="distance_field form-control center" name="distance">
+        200
+      </span>
+    </div>
+  </div>
+</form>
+
+<form role="form">
+  <div class="row">
+    <div class="col-md-2"><strong>Starting Date:</strong></div>
+    <div class="col-md-2">
+      <input type="text" class="form-control center" name="start_date"
+        placeholder="YYYY/MM/DD"/>
+    </div>
+  </div>
+</form>
+
+<form role="form">
+  <div class="row">
+    <div class="col-md-2"><strong>Starting Time:</strong></div>
+    <div class="col-md-2">
+      <input type="text" class="form-control center" name="start_time"
+        placeholder="24 Hour, HH:MM"/>
+    </div>
+  </div>
+</form>
+
 <form role="form">
 <div class="row">
+  <div class="col-md-2"><strong>Checkpoint 1:</strong></div>
   <div class="col-md-2">
-    <input type="text" class="form-control"
-     name="miles" value="Distance in miles"/>
+    <input type="text" class="form-control" name="checkpoint"
+      placeholder="Distance in kilometers"/>
   </div>
   <div class="col-md-4">
-    <input type="text" class="form-control"
-      name="location" value="location" />
+    <input type="text" class="form-control" name="location"
+      placeholder="Location"/>
   </div>
-  <div class="col-md-4">
-    <span class="times form-control">(times)</span>
+  <div class="col-md-2">
+    <span class="open_field form-control center">Open time</span>
+  </div>
+  <div class="col-md-2">
+    <span class="close_field form-control center">Close time</span>
   </div>
 </div>
+</form>
 
+<form role="form">
 <div class="row">
+  <div class="col-md-2"><strong>Checkpoint 2:</strong></div>
   <div class="col-md-2">
-    <input type="text" class="form-control"
-     name="miles" value="Distance in miles"/>
+    <input type="text" class="form-control" name="checkpoint"
+      placeholder="Distance in kilometers"/>
   </div>
   <div class="col-md-4">
-    <input type="text" class="form-control"
-      name="location" value="location" />
+    <input type="text" class="form-control" name="location"
+      placeholder="Location"/>
   </div>
-  <div class="col-md-4">
-    <span class="times form-control">(times)</span>
+  <div class="col-md-2">
+    <span class="open_field form-control center">Open time</span>
+  </div>
+  <div class="col-md-2">
+    <span class="close_field form-control center">Close time</span>
   </div>
 </div>
+</form>
 
+<form role="form">
 <div class="row">
+  <div class="col-md-2"><strong>Checkpoint 3:</strong></div>
   <div class="col-md-2">
-    <input type="text" class="form-control"
-     name="miles" value="Distance in miles"/>
+    <input type="text" class="form-control" name="checkpoint"
+      placeholder="Distance in kilometers"/>
   </div>
   <div class="col-md-4">
-    <input type="text" class="form-control"
-      name="location" value="location" />
+    <input type="text" class="form-control" name="location"
+      placeholder="Location"/>
   </div>
-  <div class="col-md-4">
-    <span class="times form-control">(times)</span>
+  <div class="col-md-2">
+    <span class="open_field form-control center">Open time</span>
+  </div>
+  <div class="col-md-2">
+    <span class="close_field form-control center">Close time</span>
   </div>
 </div>
 </form>
@@ -101,32 +164,41 @@
   $(document).ready(function() {
    // Do the following when the page is finished loading
 
-      // When a field named 'miles' is changed ...
-      $('input[name="miles"]').change(
-          // ... execute this function
-          function() {
-              var e_miles = $(this).val();
+      // TODO autofill times on start_time and start_date change
+      // TODO use jinja2 to autocreate addition checkpoints? or just add more
 
-              var target = $(this).parents(".row").find(".times");
+      $('#distances li').on('click', function() {
+          var distance = $(this).parents(".row").find(".distance_field");
+          distance.text($(this).text());
+      });
 
-              // DEBUG: How do I replace the 'times' field?
-              // alert("Content of the field I want to change: " +
-              //   target.html());
+      $('input[name="checkpoint"]').change(function() {
+          var checkpoint = $(this).val();
+          var open_field = $(this).parents(".row").find(".open_field");
+          var close_field = $(this).parents(".row").find(".close_field");
 
-              // AJAX request
-              $.getJSON($SCRIPT_ROOT + '/_calc_times',
-                  // The object to pass to the server
-                  { miles: e_miles },
-                  // The function to call with the response
-                  function(data) {
-                     var times = data.result;
-                     // alert("Got a response: " +  times);
-                     target.text(times);
-                  }); // End of the call to getJSON
-          });  // End of the function to be called when field changes
+          var start_time = $('input[name="start_time"]').val();
+          var start_date = $('input[name="start_date"]').val();
+          var distance = $('span[name="distance"]').text();
 
+          // DEBUG: How do I replace the 'times' field?
+          // alert("Content of the field I want to change: " +
+          //   target.html());
 
-     });   // end of what we do on document ready
+          // AJAX request
+          $.getJSON($SCRIPT_ROOT + '/_calc_times',
+              // The object to pass to the server
+              {checkpoint: checkpoint, distance: distance, start_time: start_time, start_date: start_date},
+              // The function to call with the response
+              function(data) {
+                 var open_time = data.open_time;
+                 var close_time = data.close_time;
+                 // alert("Got a response: " +  times);
+                 open_field.text(open_time);
+                 close_field.text(close_time);
+              }); // End of the call to getJSON
+      });  // End of the function to be called when field changes
+  });   // end of what we do on document ready
 
 </script>
 

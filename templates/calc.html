@@ -9,17 +9,16 @@
   <script
      src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js">
   </script>
+  <script src=http://momentjs.com/downloads/moment-with-locales.js></script>
 
   <!-- Bootstrap includes javascript and css  (must follow jquery) -->
   <link rel="stylesheet"
-   href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
-   <script
+    href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+  <script
     src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js">
-   </script>
+  </script>
 
-  <!-- <script type="text/javascript"  -->
-  <!--    src="/static/js/calc.js"> -->
-  <!-- </script> -->
+  <!-- <script type="text/javascript" src="/static/js/calc.js"></script> -->
 </head>
 
    <!-- Our own style sheet -->
@@ -70,137 +69,72 @@
       </div>
     </div>
     <div class="col-md-2">
-      <span class="distance_field form-control center" name="distance">
+      <span class="distance_field form-control" name="distance">
         200
       </span>
     </div>
   </div>
-</form>
-
-<form role="form">
+  <br>
   <div class="row">
     <div class="col-md-2"><strong>Starting Date:</strong></div>
     <div class="col-md-2">
-      <input type="text" class="form-control center" name="start_date"
+      <input type="text" class="form-control" name="startDate"
         placeholder="YYYY/MM/DD"/>
     </div>
+    <div class="col-md-3">default start date: tomorrow</div>
   </div>
-</form>
-
-<form role="form">
+  <br>
   <div class="row">
     <div class="col-md-2"><strong>Starting Time:</strong></div>
     <div class="col-md-2">
-      <input type="text" class="form-control center" name="start_time"
-        placeholder="24 Hour, HH:MM"/>
+      <input type="text" class="form-control" name="startTime"
+        placeholder="24 hour form, HH:MM"/>
+    </div>
+    <div class="col-md-2">default start time: 12:00</div>
+  </div>
+  <br>
+{% for i in range(25) %}
+  <div class="row">
+    <div class="col-md-2 number"><strong>Checkpoint {{ i + 1 }}:</strong></div>
+    <div class="col-md-2">
+    {% if i == 0 %}
+      <span class="form-control start">0 (Start)</span>
+    {% else %}
+      <input type="text" class="form-control" name="checkpoint"
+        placeholder="Distance in kilometers"/>
+    {% endif %}
+    </div>
+    <div class="col-md-4">
+      <input type="text" class="form-control" name="location"
+        placeholder="Location"/>
+    </div>
+    <div class="col-md-2">
+    {% if i == 0 %}
+      <span class="form-control center" name="startOpenField">
+        Open time (Start)
+      </span>
+    </div>
+    <div class="col-md-2">
+      <span class="form-control center" name="startCloseField">
+        Close time (Start)
+      </span>
+    {% else %}
+      <span class="openField form-control center">Open time</span>
+    </div>
+    <div class="col-md-2">
+      <span class="closeField form-control center">Close time</span>
+    {% endif %}
     </div>
   </div>
-</form>
-
-<form role="form">
-<div class="row">
-  <div class="col-md-2"><strong>Checkpoint 1:</strong></div>
-  <div class="col-md-2">
-    <input type="text" class="form-control" name="checkpoint"
-      placeholder="Distance in kilometers"/>
-  </div>
-  <div class="col-md-4">
-    <input type="text" class="form-control" name="location"
-      placeholder="Location"/>
-  </div>
-  <div class="col-md-2">
-    <span class="open_field form-control center">Open time</span>
-  </div>
-  <div class="col-md-2">
-    <span class="close_field form-control center">Close time</span>
-  </div>
-</div>
-</form>
-
-<form role="form">
-<div class="row">
-  <div class="col-md-2"><strong>Checkpoint 2:</strong></div>
-  <div class="col-md-2">
-    <input type="text" class="form-control" name="checkpoint"
-      placeholder="Distance in kilometers"/>
-  </div>
-  <div class="col-md-4">
-    <input type="text" class="form-control" name="location"
-      placeholder="Location"/>
-  </div>
-  <div class="col-md-2">
-    <span class="open_field form-control center">Open time</span>
-  </div>
-  <div class="col-md-2">
-    <span class="close_field form-control center">Close time</span>
-  </div>
-</div>
-</form>
-
-<form role="form">
-<div class="row">
-  <div class="col-md-2"><strong>Checkpoint 3:</strong></div>
-  <div class="col-md-2">
-    <input type="text" class="form-control" name="checkpoint"
-      placeholder="Distance in kilometers"/>
-  </div>
-  <div class="col-md-4">
-    <input type="text" class="form-control" name="location"
-      placeholder="Location"/>
-  </div>
-  <div class="col-md-2">
-    <span class="open_field form-control center">Open time</span>
-  </div>
-  <div class="col-md-2">
-    <span class="close_field form-control center">Close time</span>
-  </div>
-</div>
+  <br>
+{% endfor %}
 </form>
 
 <script type="text/javascript">
-
   $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-
-  $(document).ready(function() {
-   // Do the following when the page is finished loading
-
-      // TODO autofill times on start_time and start_date change
-      // TODO use jinja2 to autocreate addition checkpoints? or just add more
-
-      $('#distances li').on('click', function() {
-          var distance = $(this).parents(".row").find(".distance_field");
-          distance.text($(this).text());
-      });
-
-      $('input[name="checkpoint"]').change(function() {
-          var checkpoint = $(this).val();
-          var open_field = $(this).parents(".row").find(".open_field");
-          var close_field = $(this).parents(".row").find(".close_field");
-
-          var start_time = $('input[name="start_time"]').val();
-          var start_date = $('input[name="start_date"]').val();
-          var distance = $('span[name="distance"]').text();
-
-          // DEBUG: How do I replace the 'times' field?
-          // alert("Content of the field I want to change: " +
-          //   target.html());
-
-          // AJAX request
-          $.getJSON($SCRIPT_ROOT + '/_calc_times',
-              // The object to pass to the server
-              {checkpoint: checkpoint, distance: distance, start_time: start_time, start_date: start_date},
-              // The function to call with the response
-              function(data) {
-                 var open_time = data.open_time;
-                 var close_time = data.close_time;
-                 // alert("Got a response: " +  times);
-                 open_field.text(open_time);
-                 close_field.text(close_time);
-              }); // End of the call to getJSON
-      });  // End of the function to be called when field changes
-  });   // end of what we do on document ready
-
 </script>
+
+<script type="text/javascript" src="/static/js/calc.js"></script>
 
 </div>
 </body> </html>

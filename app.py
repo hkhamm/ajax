@@ -115,7 +115,7 @@ def get_start_date_times():
     start_time = request.args.get('startTime', 0, type=str)
 
     if start_date == '':
-        start_time = DEFAULT_DATE_TIME.format('YYYY/MM/DD')
+        start_date = DEFAULT_DATE_TIME.format('YYYY/MM/DD')
 
     if start_time == '':
         start_time = DEFAULT_DATE_TIME.format('HH:mm')
@@ -135,6 +135,7 @@ def get_date_time(data, speed):
     start_date = data['start_date']
     start_time = data['start_time']
 
+    # TODO fix distance <= 200 calculation
     # TODO handle other distances
 
     if distance <= 200:

@@ -13,15 +13,13 @@ calc.startOpenField = $('span[name="startOpenField"]');
 calc.startCloseField = $('span[name="startCloseField"]');
 calc.checkpointField = $('input[name="checkpoint"]');
 
-calc.defaultStartDate = moment().add(1, 'd').format('YYYY/MM/DD');
-calc.defaultStartTime = '12:00';
 calc.isNewSession = true;
 calc.checkpoints = [];
 
 /**
  * Sets a checkpoint's open and close datetimes.
  */
-calc.setDatetimes = function(that) {
+calc.setCheckpoint = function(that) {
   var openField = that.parents('.row').find('.openField');
   var closeField = that.parents('.row').find('.closeField');
 
@@ -43,7 +41,7 @@ calc.setDatetimes = function(that) {
 
     if (calc.isNewSession) {
       calc.isNewSession = false;
-      calc.setStartDatetimes(data.start_date, data.start_time,
+      calc.setStartOpenClose(data.start_date, data.start_time,
         data.start_close_time);
     } else if (checkpoint === '') {
       openField.val('Open time');
@@ -70,9 +68,34 @@ calc.setDatetimes = function(that) {
 };
 
 /**
+ * Sets the starting date and time fields.
+ */
+calc.setStartDateTime = function(startDate, startTime) {
+  // AJAX request
+  $.getJSON($SCRIPT_ROOT + '/_get_start_date_times', {
+    startDate: startDate,
+    startTime: startTime
+  }, function(data) {
+    if (startDate !== '' && startTime !== '') {
+      calc.setStartOpenClose(startDate, startTime, data.start_close_time);
+    } else if (!calc.isNewSession && startDate === '' && startTime !== '') {
+      calc.startTimeField.val(data.start_date);
+      calc.setStartOpenClose(startDate, startTime, data.start_close_time);
+    } else if (!calc.isNewSession && startDate !== '' && startTime === '') {
+      calc.startTimeField.val(data.start_time);
+      calc.setStartOpenClose(startDate, startTime, data.start_close_time);
+    } else if (!calc.isNewSession && startDate === '' && startTime === '') {
+      calc.setStartOpenClose('Open time (Start)', 'Close time (Start)');
+    }
+
+    calc.resetCheckpoints();
+  });
+};
+
+/**
  * Sets the starting checkpoint's open and close fields.
  */
-calc.setStartDatetimes = function(startDate, startTime, startCloseTime) {
+calc.setStartOpenClose = function(startDate, startTime, startCloseTime) {
   calc.startOpenField.text(startDate + ' ' + startTime);
   calc.startCloseField.text(startDate + ' ' + startCloseTime);
 };
@@ -80,20 +103,10 @@ calc.setStartDatetimes = function(startDate, startTime, startCloseTime) {
 /**
  * Resets all currently set checkpoints' open and close fields.
  */
-calc.setCheckpointDatetimes = function() {
+calc.resetCheckpoints = function() {
   for (var i = 0; calc.checkpoints[i] !== undefined; i++) {
-    calc.setDatetimes(calc.checkpoints[i]);
+    calc.setCheckpoint(calc.checkpoints[i]);
   }
-};
-
-/**
- * Gets a checkpoint's number.
- * @checkpoint {object} The checkpoint to use.
- * @return {number} The checkpoint's number.
- */
-calc.getCheckpointNum = function(checkpoint) {
-  var num = checkpoint.parents('.row').find('.number').text();
-  return num.split(' ')[1].split(':')[0];
 };
 
 /**
@@ -101,7 +114,8 @@ calc.getCheckpointNum = function(checkpoint) {
  * @checkpoint {object} The checkpoint to add.
  */
 calc.addCheckpoint = function(checkpoint) {
-  var num = calc.getCheckpointNum(checkpoint);
+  var num = checkpoint.parents('.row').find('.number').text();
+  num = num.split(' ')[1].split(':')[0];
   calc.checkpoints[num - 2] = checkpoint;
 };
 
@@ -130,22 +144,7 @@ calc.startDateField.change(function() {
 
   // TODO validate start date
 
-  // AJAX request
-  $.getJSON($SCRIPT_ROOT + '/_get_start_date_times', {
-    startDate: startDate,
-    startTime: startTime
-  }, function(data) {
-    if (startDate !== '' && startTime !== '') {
-      calc.setStartDatetimes(startDate, startTime, data.start_close_time);
-    } else if (!calc.isNewSession && startDate !== '' && startTime === '') {
-      calc.startTimeField.val(data.start_time);
-      calc.setStartDatetimes(startDate, startTime, data.start_close_time);
-    } else if (!calc.isNewSession && startDate === '' && startTime === '') {
-      calc.setStartDatetimes('Open time (Start)', 'Close time (Start)');
-    }
-
-    calc.setCheckpointDatetimes();
-  });
+  calc.setStartDateTime(startDate, startTime);
 });
 
 /**
@@ -156,37 +155,16 @@ calc.startTimeField.change(function() {
   var startDate = calc.startDateField.val();
   var startTime = $(this).val();
 
-  //console.log('startTime change');
-  //console.log('isNewSession: ' + calc.isNewSession);
-  //console.log('startDate: ' + startDate);
-  //console.log('startTime: ' + startTime);
-  //console.log('---');
-
   // TODO validate start time
 
-  // AJAX request
-  $.getJSON($SCRIPT_ROOT + '/_get_start_date_times', {
-    startDate: startDate,
-    startTime: startTime
-  }, function(data) {
-    if (startDate !== '' && startTime !== '') {
-      calc.setStartDatetimes(startDate, startTime, data.start_close_time);
-    } else if (!calc.isNewSession && startDate === '' && startTime !== '') {
-      calc.startTimeField.val(data.start_date);
-      calc.setStartDatetimes(startDate, startTime, data.start_close_time);
-    } else if (!calc.isNewSession && startDate === '' && startTime === '') {
-      calc.setStartDatetimes('Open time (Start)', 'Close time (Start)');
-    }
-
-    calc.setCheckpointDatetimes();
-  });
+  calc.setStartDateTime(startDate, startTime);
 });
 
 /**
  * Listens for changes to checkpoint distance fields.
  */
 calc.checkpointField.change(function() {
-  calc.setDatetimes($(this));
+  calc.setCheckpoint($(this));
 });
 
 //$(document).ready(function(){

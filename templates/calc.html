@@ -1,34 +1,37 @@
 <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
-<html> <head>
-<title>ACP checkpoint Times</title>
+<html>
+<head>
+  <title>ACP checkpoint Times</title>
 
   <!-- 'viewport' is used by bootstrap to respond to device size -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <!-- Javascript:  JQuery from a content distribution network (CDN) -->
-  <script
-     src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js">
+  <!-- Javascript: JQuery from a content distribution network (CDN) -->
+  <script type="text/javascript"
+    src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js">
   </script>
-  <script src=http://momentjs.com/downloads/moment-with-locales.js></script>
+
+  <!-- Moment: Moment.js from a content distribution network (CDN) -->
+{#  <script type="text/javascript"#}
+{#    src=https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.6/moment.min.js>#}
+{#  </script>#}
 
   <!-- Bootstrap includes javascript and css  (must follow jquery) -->
   <link rel="stylesheet"
     href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
-  <script
+  <script type="text/javascript"
     src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js">
   </script>
-
-  <!-- <script type="text/javascript" src="/static/js/calc.js"></script> -->
 </head>
 
-   <!-- Our own style sheet -->
-   <link rel="stylesheet" href="/static/css/calc.css" />
+  <!-- Our own style sheet -->
+  <link rel="stylesheet" href="/static/css/calc.css" />
 
 <body>
-<!-- bootstrap requires a 'container' div around content -->
-<div class="container">
+  <!-- bootstrap requires a 'container' div around content -->
+  <div class="container">
 
-<h1>ACP Brevet Time Calculator</h1>
+  <h1>ACP Brevet Time Calculator</h1>
 
   <!--
   -- If there are any warnings or other messages from a prior
@@ -38,103 +41,104 @@
   -- result in regenerating the page, not on every xmlhttp request.)
   -->
 
-{% with messages = get_flashed_messages() %}
-  {% if messages %}
-    <ul class=flashes>
-    {% for message in messages %}
-      <li>{{ message }}</li>
-    {% endfor %}
-    </ul>
-  {% endif %}
-{% endwith %}
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <ul class=flashes>
+      {% for message in messages %}
+        <li>{{ message }}</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
 
-<!-- Design on bootstrap grid -->
+  <!-- Design on bootstrap grid -->
 
-<form role="form">
-  <div class="row">
-    <div class="col-md-2">
-      <div class="dropdown">
-          <button class="btn btn-default dropdown-toggle" type="button"
-            data-toggle="dropdown">
-            Brevet distance:
-            <span class="caret"></span>
-          </button>
-          <ul class="dropdown-menu" id="distances">
-            <li><a href="#">200</a></li>
-            <li><a href="#">300</a></li>
-            <li><a href="#">400</a></li>
-            <li><a href="#">600</a></li>
-            <li><a href="#">1000</a></li>
-          </ul>
+  <form role="form">
+    <div class="row">
+      <div class="col-md-2">
+        <div class="dropdown">
+            <button class="btn btn-default dropdown-toggle" type="button"
+              data-toggle="dropdown">
+              Brevet distance:
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" id="distances">
+              <li><a href="#">200</a></li>
+              <li><a href="#">300</a></li>
+              <li><a href="#">400</a></li>
+              <li><a href="#">600</a></li>
+              <li><a href="#">1000</a></li>
+            </ul>
+        </div>
+      </div>
+      <div class="col-md-2">
+        <span class="distance_field form-control" name="distance">
+          200
+        </span>
       </div>
     </div>
-    <div class="col-md-2">
-      <span class="distance_field form-control" name="distance">
-        200
-      </span>
+    <br>
+    <div class="row">
+      <div class="col-md-2"><strong>Starting Date:</strong></div>
+      <div class="col-md-2">
+        <input type="text" class="form-control" name="startDate"
+          placeholder="YYYY/MM/DD"/>
+      </div>
+      <div class="col-md-3">default start date: tomorrow</div>
     </div>
-  </div>
-  <br>
-  <div class="row">
-    <div class="col-md-2"><strong>Starting Date:</strong></div>
-    <div class="col-md-2">
-      <input type="text" class="form-control" name="startDate"
-        placeholder="YYYY/MM/DD"/>
+    <br>
+    <div class="row">
+      <div class="col-md-2"><strong>Starting Time:</strong></div>
+      <div class="col-md-2">
+        <input type="text" class="form-control" name="startTime"
+          placeholder="24 hour form, HH:MM"/>
+      </div>
+      <div class="col-md-2">default start time: 12:00</div>
     </div>
-    <div class="col-md-3">default start date: tomorrow</div>
-  </div>
-  <br>
-  <div class="row">
-    <div class="col-md-2"><strong>Starting Time:</strong></div>
-    <div class="col-md-2">
-      <input type="text" class="form-control" name="startTime"
-        placeholder="24 hour form, HH:MM"/>
+    <br>
+  {% for i in range(25) %}
+    <div class="row">
+      <div class="col-md-2 number"><strong>Checkpoint {{ i + 1 }}:</strong></div>
+      <div class="col-md-2">
+      {% if i == 0 %}
+        <span class="form-control start">0 (Start)</span>
+      {% else %}
+        <input type="text" class="form-control" name="checkpoint"
+          placeholder="Distance in kilometers"/>
+      {% endif %}
+      </div>
+      <div class="col-md-4">
+        <input type="text" class="form-control" name="location"
+          placeholder="Location"/>
+      </div>
+      <div class="col-md-2">
+      {% if i == 0 %}
+        <span class="form-control center" name="startOpenField">
+          Open time (Start)
+        </span>
+      </div>
+      <div class="col-md-2">
+        <span class="form-control center" name="startCloseField">
+          Close time (Start)
+        </span>
+      {% else %}
+        <span class="openField form-control center">Open time</span>
+      </div>
+      <div class="col-md-2">
+        <span class="closeField form-control center">Close time</span>
+      {% endif %}
+      </div>
     </div>
-    <div class="col-md-2">default start time: 12:00</div>
-  </div>
-  <br>
-{% for i in range(25) %}
-  <div class="row">
-    <div class="col-md-2 number"><strong>Checkpoint {{ i + 1 }}:</strong></div>
-    <div class="col-md-2">
-    {% if i == 0 %}
-      <span class="form-control start">0 (Start)</span>
-    {% else %}
-      <input type="text" class="form-control" name="checkpoint"
-        placeholder="Distance in kilometers"/>
-    {% endif %}
-    </div>
-    <div class="col-md-4">
-      <input type="text" class="form-control" name="location"
-        placeholder="Location"/>
-    </div>
-    <div class="col-md-2">
-    {% if i == 0 %}
-      <span class="form-control center" name="startOpenField">
-        Open time (Start)
-      </span>
-    </div>
-    <div class="col-md-2">
-      <span class="form-control center" name="startCloseField">
-        Close time (Start)
-      </span>
-    {% else %}
-      <span class="openField form-control center">Open time</span>
-    </div>
-    <div class="col-md-2">
-      <span class="closeField form-control center">Close time</span>
-    {% endif %}
-    </div>
-  </div>
-  <br>
-{% endfor %}
-</form>
+    <br>
+  {% endfor %}
+  </form>
 
-<script type="text/javascript">
-  $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-</script>
+  <script type="text/javascript">
+    $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+  </script>
 
-<script type="text/javascript" src="/static/js/calc.js"></script>
+  <script type="text/javascript" src="/static/js/calc.js"></script>
 
-</div>
-</body> </html>
+  </div>
+</body>
+</html>

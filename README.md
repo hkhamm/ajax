@@ -1,4 +1,4 @@
-# Brevet Time Calculator
+# Brevet Checkpoint Time Calculator
 
 Randonneuring is a long-distance cycling sport. A randonneuring event is 
 called a randonnée or brevet. Brevets are composed of a series of checkpoints. 
@@ -19,14 +19,14 @@ a corresponding minimum and maximum speed. (see Speeds Table)
 
 ## General Rules
 
-1) Determine what range increment the current distance falls within. Note the
+1. Determine what range increment the current distance falls within. Note the
  min and max speeds and the low end of the range increment.
-2) For open times: total += (current distance - low end) / max speed
-3) For close times: total += (current distance - low end) / min speed
-4) Set current distance -= (current distance - low end)
-5) Repeat 1 - 4 until current distance is 0
-6) Convert total into hours and minutes
-7) Add hours and minutes to the starting datetime
+2. For open times: total += (current distance - low end) / max speed
+3. For close times: total += (current distance - low end) / min speed
+4. Set current distance -= (current distance - low end)
+5. Repeat 1 - 4 until current distance is 0
+6. Convert total into hours and minutes
+7. Add hours and minutes to the starting datetime
 
 ## Special Rules
 

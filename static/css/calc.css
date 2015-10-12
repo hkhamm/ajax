@@ -9,3 +9,15 @@
 .center {
   text-align: center;
 }
+
+.entry:not(:first-of-type) {
+  margin-top: 10px;
+}
+
+.glyphicon {
+  font-size: 12px;
+}
+
+.add-button {
+  border-radius: 4px;
+}

@@ -6,27 +6,39 @@
 
 var calc = {};
 
-calc.distanceDropdown = $('#distances').find('li');
-calc.startDateField = $('input[name="startDate"]');
-calc.startTimeField = $('input[name="startTime"]');
-calc.startOpenField = $('span[name="startOpenField"]');
-calc.startCloseField = $('span[name="startCloseField"]');
+calc.distanceSelector = $('#brevetDistance');
+calc.startDateField = $('#startDate');
+calc.startTimeField = $('#startTime');
+calc.startOpenField = $('#startOpenField');
+calc.startCloseField = $('#startCloseField');
 calc.checkpointField = $('input[name="checkpoint"]');
+calc.addButton = $('.btn-add');
+calc.removeButtom = $('.btn-remove');
 
 calc.isNewSession = true;
 calc.checkpoints = [];
+calc.checkpointCount = 1;
 
 /**
  * Sets a checkpoint's open and close datetimes.
  */
 calc.setCheckpoint = function(that) {
-  var openField = that.parents('.row').find('.openField');
-  var closeField = that.parents('.row').find('.closeField');
+  var openField = that.parents('.form-group').find('#openField');
+  var closeField = that.parents('.form-group').find('#closeField');
 
-  var distance = $('span[name="distance"]').text();
+  var distance = $("#brevetDistance option:selected").val();
   var startDate = calc.startDateField.val();
   var startTime = calc.startTimeField.val();
   var checkpoint = that.val();
+  var num = calc.checkpointCount + 1;
+
+  if (!Number.isInteger(checkpoint) &&
+      !$('#alert_placeholder').find('#checkpointAlert' + num).length) {
+    calc.alert('Checkpoint '+ num + '\'s distance is invalid.' +
+      ' It must be a number and within the valid distance interval.',
+      'checkpointAlert' + num);
+      // highlight bad fields?
+  }
 
   // TODO validate checkpoint distance
 
@@ -37,33 +49,38 @@ calc.setCheckpoint = function(that) {
     startDate: startDate,
     startTime: startTime
   }, function(data) {
-    calc.addCheckpoint(that);
+    if (!data.is_valid_checkpoint &&
+        !$('#alert_placeholder').find('#checkpointAlert' + num).length) {
+      calc.alert('Checkpoint '+ num + '\'s distance is invalid.' +
+        ' It must be a number and within the valid distance interval.',
+        'checkpointAlert' + num);
+        // highlight bad fields?
+    } else {
+      calc.addCheckpoint(that);
 
-    if (calc.isNewSession) {
-      calc.isNewSession = false;
-      calc.setStartOpenClose(data.start_date, data.start_time,
-        data.start_close_time);
-    } else if (checkpoint === '') {
-      openField.val('Open time');
-      closeField.val('Close time');
-    }
+      if (calc.isNewSession) {
+        calc.isNewSession = false;
+        calc.setStartOpenClose(data.start_date, data.start_time,
+          data.start_close_time);
+      } else if (checkpoint === '') {
+        openField.val('Open time');
+        closeField.val('Close time');
+      }
 
-    startDate = calc.startDateField.val();
-    startTime = calc.startTimeField.val();
+      startDate = calc.startDateField.val();
+      startTime = calc.startTimeField.val();
 
-    if (startDate === '' || startTime === '') {
-      if (startDate === '' && startTime === '') {
+      if (startDate === '') {
         calc.startDateField.val(data.start_date);
-        calc.startTimeField.val(data.start_time);
-      } else if (startDate === '') {
-        calc.startDateField.val(data.start_date);
-      } else if (startTime === '') {
+      }
+
+      if (startTime === '') {
         calc.startTimeField.val(data.start_time);
       }
-    }
 
-    openField.text(data.open_time);
-    closeField.text(data.close_time);
+      openField.val(data.open_time);
+      closeField.val(data.close_time);
+    }
   });
 };
 
@@ -76,6 +93,26 @@ calc.setStartDateTime = function(startDate, startTime) {
     startDate: startDate,
     startTime: startTime
   }, function(data) {
+
+    var isValidDate = data.is_valid_date;
+    var isValidTime = data.is_valid_time;
+
+    if (!isValidDate || !isValidTime) {
+      if (!isValidDate &&
+          !$('#alert_placeholder').find('#startDateAlert').length) {
+        calc.alert('The Starting Date you entered is invalid. It must have' +
+          ' this form: YYYY/MM/DD', 'startDateAlert');
+        // highlight bad fields?
+      }
+      if (!isValidTime &&
+          !($('#alert_placeholder').find('startTimeAlert').length)) {
+        calc.alert('The Starting Time you entered is invalid. It must be' +
+        ' in 24 format and have this form: HH:mm', 'startTimeAlert');
+      }
+      // highlight bad fields?
+      return
+    }
+
     if (startDate !== '' && startTime !== '') {
       calc.setStartOpenClose(startDate, startTime, data.start_close_time);
     } else if (!calc.isNewSession && startDate === '' && startTime !== '') {
@@ -85,7 +122,7 @@ calc.setStartDateTime = function(startDate, startTime) {
       calc.startTimeField.val(data.start_time);
       calc.setStartOpenClose(startDate, startTime, data.start_close_time);
     } else if (!calc.isNewSession && startDate === '' && startTime === '') {
-      calc.setStartOpenClose('Open time (Start)', 'Close time (Start)');
+      calc.setStartOpenClose('', '');
     }
 
     calc.resetCheckpoints();
@@ -96,8 +133,8 @@ calc.setStartDateTime = function(startDate, startTime) {
  * Sets the starting checkpoint's open and close fields.
  */
 calc.setStartOpenClose = function(startDate, startTime, startCloseTime) {
-  calc.startOpenField.text(startDate + ' ' + startTime);
-  calc.startCloseField.text(startDate + ' ' + startCloseTime);
+  calc.startOpenField.val(startDate + ' ' + startTime);
+  calc.startCloseField.val(startDate + ' ' + startCloseTime);
 };
 
 /**
@@ -114,19 +151,30 @@ calc.resetCheckpoints = function() {
  * @checkpoint {object} The checkpoint to add.
  */
 calc.addCheckpoint = function(checkpoint) {
-  var num = checkpoint.parents('.row').find('.number').text();
-  num = num.split(' ')[1].split(':')[0];
+  var num = checkpoint.parents('.form-group').find('.checkpoint-label').text();
+  num =  num.split(' ')[1].split(':')[0];
+
   calc.checkpoints[num - 2] = checkpoint;
 };
 
+calc.getCheckpointNum = function(checkpoint) {
+  var num = checkpoint.parents('.form-group').find('.checkpoint-label').text();
+  return num.split(' ')[1].split(':')[0];
+};
+
 /**
- * Listens for changes to the brevet distance. Sets the distance field on
- * selection.
+ * Creates a Bootstrap alert.
+ * @message {string} The alert message.
+ * @alert_type {string) The alert type.
  */
-calc.distanceDropdown.on('click', function() {
-  var distance_field = $(this).parents('.row').find('.distance_field');
-  distance_field.text($(this).text());
-});
+calc.alert = function(message, alert_type) {
+  var alertMsg = '<div class="alert alert-warning alert-dismissible" \
+  role="alert" id="' + alert_type + '"><button type="button" class="close" \
+  data-dismiss="alert"aria-label="Close"><span aria-hidden="true">&times;\
+  </span></button><strong>Warning!</strong> ' + message + '</div>';
+
+  $('#alert_placeholder').append(alertMsg);
+};
 
 /**
  * Listens for changes to the Starting Date field. Sets the
@@ -136,14 +184,7 @@ calc.startDateField.change(function() {
   var startDate = $(this).val();
   var startTime = calc.startTimeField.val();
 
-  //console.log('startDate change');
-  //console.log('isNewSession: ' + calc.isNewSession);
-  //console.log('startDate: ' + startDate);
-  //console.log('startTime: ' + startTime);
-  //console.log('---');
-
-  // TODO validate start date
-
+  //console.log('startDate change ' + startDate);
   calc.setStartDateTime(startDate, startTime);
 });
 
@@ -155,16 +196,64 @@ calc.startTimeField.change(function() {
   var startDate = calc.startDateField.val();
   var startTime = $(this).val();
 
-  // TODO validate start time
-
+  //console.log('startTime change ' + startTime);
   calc.setStartDateTime(startDate, startTime);
 });
 
 /**
  * Listens for changes to checkpoint distance fields.
  */
-calc.checkpointField.change(function() {
+$('#checkpoint').change(function() {
   calc.setCheckpoint($(this));
+});
+
+/**
+ * Listens for clicks on the add checkpoint button.
+ */
+calc.addButton.on('click', function(e) {
+  e.preventDefault();
+
+  calc.checkpointCount += 1;
+  var num = calc.checkpointCount + 1;
+
+  //console.log('add ' + calc.checkpointCount);
+
+  if (calc.checkpointCount > 1) {
+    $('.btn-remove').removeAttr('disabled');
+  }
+
+  var controlForm = $('.checkpoints div:first'),
+      currentEntry = $('.entry:first'),
+      newEntry = $(currentEntry.clone()).appendTo(controlForm);
+
+  newEntry.find('input').val('');
+  newEntry.find('.checkpoint-label').text('Checkpoint ' + num);
+  controlForm.find('.entry:not(:last)');
+
+  newEntry.find('#checkpoint').change(function() {
+    calc.setCheckpoint($(this));
+  });
+  //calc.checkpointField = $('input[name="checkpoint"]');
+});
+
+/**
+ * Listens for clicks on the remove checkpoint button.
+ */
+calc.removeButtom .on('click', function(e) {
+  $('.entry:last').remove();
+
+  calc.checkpointCount -= 1;
+
+  //console.log('remove ' + calc.checkpointCount);
+
+  if (calc.checkpointCount <= 1) {
+    $(this).attr('disabled', 'disabled')
+  }
+
+  //calc.checkpointField = $('input[name="checkpoint"]');
+
+  e.preventDefault();
+  return false;
 });
 
 //$(document).ready(function(){

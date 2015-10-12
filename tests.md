@@ -38,6 +38,6 @@
 
 ## Action: change checkpoint 3-25 distance
 - if checkpoint distance == '':
-      alert: warn user that checkpoint 1 must be set
+    alert: warn user that checkpoint 1 must be set
 - if checkpoint distance != '':
-      set checkpoint open and close times
+    set checkpoint open and close times

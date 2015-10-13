@@ -56,7 +56,6 @@ calc.setCheckpoint = function(that) {
     }
   }
 
-  // AJAX request
   $.getJSON($SCRIPT_ROOT + '/_calc_date_times', {
     checkpoint: checkpoint,
     distance: distance,
@@ -75,7 +74,7 @@ calc.setCheckpoint = function(that) {
 
       if (calc.isNewSession) {
         calc.isNewSession = false;
-        calc.setStartOpenClose(data.start_date, data.start_time,
+        calc.setStartOpenClose(data.start_open_date, data.start_time,
           data.start_close_time);
       } else if (checkpoint === '') {
         openField.val('Open time');
@@ -206,7 +205,6 @@ calc.startDateField.change(function() {
   var startDate = $(this).val();
   var startTime = calc.startTimeField.val();
 
-  //console.log('startDate change ' + startDate);
   calc.setStartDateTime(startDate, startTime);
 });
 
@@ -218,7 +216,6 @@ calc.startTimeField.change(function() {
   var startDate = calc.startDateField.val();
   var startTime = $(this).val();
 
-  //console.log('startTime change ' + startTime);
   calc.setStartDateTime(startDate, startTime);
 });
 
@@ -238,8 +235,6 @@ calc.addButton.click(function(e) {
   calc.checkpointCount += 1;
   var num = calc.checkpointCount + 1;
 
-  //console.log('add ' + calc.checkpointCount);
-
   if (calc.checkpointCount > 1) {
     $('.btn-remove').removeAttr('disabled');
   }
@@ -255,9 +250,6 @@ calc.addButton.click(function(e) {
   newEntry.find('#checkpoint').change(function() {
     calc.setCheckpoint($(this));
   });
-  //calc.checkpoints.push(newEntry.find('#checkpoint'));
-  //calc.openTimes.push(newEntry.find('#openTime'));
-  //calc.closeTimes.push(newEntry.find('#closeTime'));
 });
 
 /**
@@ -267,8 +259,6 @@ calc.removeButton.click(function(e) {
   $('.entry:last').remove();
 
   calc.checkpointCount -= 1;
-
-  //console.log('remove ' + calc.checkpointCount);
 
   if (calc.checkpointCount <= 1) {
     $(this).attr('disabled', 'disabled')
@@ -300,30 +290,12 @@ calc.textButton.click(function() {
       that = calc.checkpoints[i];
       openField = that.parents('.form-group').find('#openField');
       closeField = that.parents('.form-group').find('#closeField');
-      //console.log('that ' + that.val());
+
       checkpointDistances[i] = that.val();
       openTimes[i] = openField.val();
       closeTimes[i] = closeField.val();
     }
   }
-
-  //console.log('checkpointDistances');
-  //length = checkpointDistances.length;
-  //for (i = 0; i < length; i++) {
-  //  console.log(checkpointDistances[i])
-  //}
-  //
-  //console.log('openTimes');
-  //length = openTimes.length;
-  //for (i = 0; i < length; i++) {
-  //  console.log(openTimes[i])
-  //}
-  //
-  //console.log('closeTimes');
-  //length = closeTimes.length;
-  //for (i = 0; i < length; i++) {
-  //  console.log(closeTimes[i])
-  //}
 
   console.log(JSON.stringify(checkpointDistances));
 

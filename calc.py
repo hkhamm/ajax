@@ -77,12 +77,6 @@ def calc_times():
                 '1300': {'low': 1000, 'min': 13.333, 'max': 26},
             }}
 
-    # speeds = {'200': {'min': 15, 'max': 34},
-    #           '400': {'min': 15, 'max': 32},
-    #           '600': {'min': 15, 'max': 30},
-    #           '1000': {'min': 11.428, 'max': 28},
-    #           '1300': {'min': 13.333, 'max': 26}}
-
     if data['units'] == 'miles':
         conv_fac = 0.621371
         data['distance'] /= conv_fac
@@ -94,8 +88,8 @@ def calc_times():
     low_speed = speeds[str(distance)]['low']
     is_valid_checkpoint = True
 
-    # if low_speed <= int(checkpoint) > distance_max:
-    #     is_valid_checkpoint = False
+    if int(checkpoint) > distance_max:
+        is_valid_checkpoint = False
 
     if is_valid_checkpoint:
         data['checkpoint'] = int(data['checkpoint'])
@@ -106,9 +100,9 @@ def calc_times():
             data['start_time'] = DEFAULT_DATE_TIME.format('12:00')
 
         open_time = get_date_time(data, 'max', 'open').format(
-            'YYYY/MM/DD HH:mm')
+            'MM/DD HH:mm')
         close_time = get_date_time(data, 'min', 'close').format(
-            'YYYY/MM/DD HH:mm')
+            'MM/DD HH:mm')
 
         # if open_time == checkpoint:
         #     open_time = 'Error'
@@ -118,6 +112,8 @@ def calc_times():
         start_date = data['start_date']
         start_time = data['start_time']
 
+        start_open_date = arrow.get(start_date, 'YYYY/MM/DD').format('MM/DD')
+
         start_close_time = arrow.get(start_time, 'HH:mm').replace(
             hours=+1).format('HH:mm')
     else:
@@ -125,11 +121,13 @@ def calc_times():
         close_time = ''
         start_date = ''
         start_time = ''
+        start_open_date = ''
         start_close_time = ''
 
     return jsonify(open_time=open_time, close_time=close_time,
                    start_date=start_date, start_time=start_time,
                    start_close_time=start_close_time,
+                   start_open_date=start_open_date,
                    is_valid_checkpoint=is_valid_checkpoint)
 
 
@@ -197,12 +195,16 @@ def create_times():
     open_times = json.loads(request.args.get('openTimes', 0, type=str))
     close_times = json.loads(request.args.get('closeTimes', 0, type=str))
 
+    unit = 'km'
+    if units == 'miles':
+        unit = 'mi'
+
     f = open('templates/times.txt', 'w')
 
     f.write('{}km BREVET\n'.format(brevet_distance))
-    f.write('Checkpoint       Date       Time \n')
-    f.write('==========       ========== =====\n')
-    f.write('    0km   start: {}\n'.format(start_open))
+    f.write('Checkpoint       Date  Time \n')
+    f.write('==========       ===== =====\n')
+    f.write('    0{}   start: {}\n'.format(unit, start_open))
     f.write('          close: {}\n'.format(start_close))
     f.write('                                  \n')
 
@@ -222,7 +224,7 @@ def create_times():
             space = ' '
         else:
             space = ''
-        f.write('{}km    open: {}\n'.format(space + dist, open_time))
+        f.write('{}{}    open: {}\n'.format(space + dist, unit, open_time))
         f.write('          close: {}\n'.format(close_time))
         f.write('                                  \n')
 

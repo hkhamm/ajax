@@ -4,6 +4,11 @@
  * @date: Fall 2015
  */
 
+// TODO handle output miles on text document
+// TODO handle custom output dates everywhere?
+// TODO write unit tests
+// TODO last checkpoint between the brevet distance and that distance plus 10%
+
 var calc = {};
 
 calc.distanceSelector = $('#brevetDistance');
@@ -12,11 +17,17 @@ calc.startTimeField = $('#startTime');
 calc.startOpenField = $('#startOpenField');
 calc.startCloseField = $('#startCloseField');
 calc.checkpointField = $('input[name="checkpoint"]');
+calc.checkpoint2Open = $('#openField');
+calc.checkpoint2Close = $('#closeField');
 calc.addButton = $('.btn-add');
-calc.removeButtom = $('.btn-remove');
+calc.removeButton = $('.btn-remove');
+calc.textButton = $('#textButton');
 
 calc.isNewSession = true;
 calc.checkpoints = [];
+calc.checkpointVals = [];
+calc.openTimes = [];
+calc.closeTimes = [];
 calc.checkpointCount = 1;
 
 /**
@@ -31,23 +42,27 @@ calc.setCheckpoint = function(that) {
   var startTime = calc.startTimeField.val();
   var checkpoint = that.val();
   var num = calc.checkpointCount + 1;
+  var units = $('#units input:radio:checked').val();
 
-  if (!Number.isInteger(checkpoint) &&
-      !$('#alert_placeholder').find('#checkpointAlert' + num).length) {
-    calc.alert('Checkpoint '+ num + '\'s distance is invalid.' +
+  var len = checkpoint.length;
+  for (var i = 0; i < len; i++) {
+    if (isNaN(parseInt(checkpoint.charAt(i))) &&
+        !$('#alert_placeholder').find('#checkpointAlert' + num).length) {
+      calc.alert('Checkpoint '+ num + '\'s distance is invalid.' +
       ' It must be a number and within the valid distance interval.',
       'checkpointAlert' + num);
       // highlight bad fields?
+      break;
+    }
   }
-
-  // TODO validate checkpoint distance
 
   // AJAX request
   $.getJSON($SCRIPT_ROOT + '/_calc_date_times', {
     checkpoint: checkpoint,
     distance: distance,
     startDate: startDate,
-    startTime: startTime
+    startTime: startTime,
+    units: units
   }, function(data) {
     if (!data.is_valid_checkpoint &&
         !$('#alert_placeholder').find('#checkpointAlert' + num).length) {
@@ -141,8 +156,11 @@ calc.setStartOpenClose = function(startDate, startTime, startCloseTime) {
  * Resets all currently set checkpoints' open and close fields.
  */
 calc.resetCheckpoints = function() {
-  for (var i = 0; calc.checkpoints[i] !== undefined; i++) {
-    calc.setCheckpoint(calc.checkpoints[i]);
+  var length = calc.checkpoints.length;
+  for (var i = 0; i < length; i++) {
+    if (calc.checkpoints[i] !== undefined) {
+      calc.setCheckpoint(calc.checkpoints[i]);
+    }
   }
 };
 
@@ -152,11 +170,15 @@ calc.resetCheckpoints = function() {
  */
 calc.addCheckpoint = function(checkpoint) {
   var num = checkpoint.parents('.form-group').find('.checkpoint-label').text();
-  num =  num.split(' ')[1].split(':')[0];
+  num = num.split(' ')[1].split(':')[0];
 
   calc.checkpoints[num - 2] = checkpoint;
 };
 
+/**
+ * Gets a checkpoint's number.
+ * @checkpoint {object} The checkpoint.
+ */
 calc.getCheckpointNum = function(checkpoint) {
   var num = checkpoint.parents('.form-group').find('.checkpoint-label').text();
   return num.split(' ')[1].split(':')[0];
@@ -210,7 +232,7 @@ $('#checkpoint').change(function() {
 /**
  * Listens for clicks on the add checkpoint button.
  */
-calc.addButton.on('click', function(e) {
+calc.addButton.click(function(e) {
   e.preventDefault();
 
   calc.checkpointCount += 1;
@@ -233,13 +255,15 @@ calc.addButton.on('click', function(e) {
   newEntry.find('#checkpoint').change(function() {
     calc.setCheckpoint($(this));
   });
-  //calc.checkpointField = $('input[name="checkpoint"]');
+  //calc.checkpoints.push(newEntry.find('#checkpoint'));
+  //calc.openTimes.push(newEntry.find('#openTime'));
+  //calc.closeTimes.push(newEntry.find('#closeTime'));
 });
 
 /**
  * Listens for clicks on the remove checkpoint button.
  */
-calc.removeButtom .on('click', function(e) {
+calc.removeButton.click(function(e) {
   $('.entry:last').remove();
 
   calc.checkpointCount -= 1;
@@ -250,11 +274,73 @@ calc.removeButtom .on('click', function(e) {
     $(this).attr('disabled', 'disabled')
   }
 
-  //calc.checkpointField = $('input[name="checkpoint"]');
-
   e.preventDefault();
   return false;
 });
+
+calc.textButton.click(function() {
+  var brevetDistance = $("#brevetDistance option:selected").val();
+  var startDate = calc.startDateField.val();
+  var startTime = calc.startTimeField.val();
+  var startOpen = calc.startOpenField.val();
+  var startClose = calc.startCloseField.val();
+  var units = $('#units input:radio:checked').val();
+  var checkpointDistances = [];
+  var openTimes = [];
+  var closeTimes = [];
+
+  var that;
+  var openField;
+  var closeField;
+  var i;
+  var length = calc.checkpoints.length;
+
+  for (i = 0; i < length; i++) {
+    if (calc.checkpoints[i] !== undefined) {
+      that = calc.checkpoints[i];
+      openField = that.parents('.form-group').find('#openField');
+      closeField = that.parents('.form-group').find('#closeField');
+      //console.log('that ' + that.val());
+      checkpointDistances[i] = that.val();
+      openTimes[i] = openField.val();
+      closeTimes[i] = closeField.val();
+    }
+  }
+
+  //console.log('checkpointDistances');
+  //length = checkpointDistances.length;
+  //for (i = 0; i < length; i++) {
+  //  console.log(checkpointDistances[i])
+  //}
+  //
+  //console.log('openTimes');
+  //length = openTimes.length;
+  //for (i = 0; i < length; i++) {
+  //  console.log(openTimes[i])
+  //}
+  //
+  //console.log('closeTimes');
+  //length = closeTimes.length;
+  //for (i = 0; i < length; i++) {
+  //  console.log(closeTimes[i])
+  //}
+
+  console.log(JSON.stringify(checkpointDistances));
+
+  $.getJSON($SCRIPT_ROOT + '/_create_times', {
+    brevetDistance: brevetDistance,
+    startDate: startDate,
+    startTime: startTime,
+    startOpen: startOpen,
+    startClose: startClose,
+    units: units,
+    checkpointDistances: JSON.stringify(checkpointDistances),
+    openTimes: JSON.stringify(openTimes),
+    closeTimes: JSON.stringify(closeTimes)
+  });
+  window.open('/times');
+});
+
 
 //$(document).ready(function(){
 //// Do the following when the page is finished loading

@@ -12,7 +12,7 @@ from flask import request
 from flask import jsonify  # For AJAX transactions
 # from flask import flash
 
-# import json
+import json
 import logging
 
 # Date handling
@@ -28,7 +28,6 @@ import re
 
 # Globals
 app = flask.Flask(__name__)
-
 app.secret_key = str(uuid.uuid4())
 app.debug = CONFIG.DEBUG
 app.logger.setLevel(logging.DEBUG)
@@ -60,6 +59,7 @@ def calc_times():
     """
     Calculates open/close times from kilometers, using rules
     described at http://www.rusa.org/octime_alg.html.
+    :return: A json object with the open and close times.
     """
     app.logger.debug("Got a JSON request")
 
@@ -67,8 +67,10 @@ def calc_times():
             'start_date': request.args.get('startDate', 0, type=str),
             'start_time': request.args.get('startTime', 0, type=str),
             'checkpoint': request.args.get('checkpoint', 0, type=int),
+            'units': request.args.get('units', 0, type=str),
             'speeds': {
                 '200': {'low': 0, 'min': 15, 'max': 34},
+                '300': {'low': 200, 'min': 15, 'max': 32},
                 '400': {'low': 200, 'min': 15, 'max': 32},
                 '600': {'low': 400, 'min': 15, 'max': 30},
                 '1000': {'low': 600, 'min': 11.428, 'max': 28},
@@ -81,19 +83,19 @@ def calc_times():
     #           '1000': {'min': 11.428, 'max': 28},
     #           '1300': {'min': 13.333, 'max': 26}}
 
-    # TODO validate checkpoint
+    if data['units'] == 'miles':
+        conv_fac = 0.621371
+        data['distance'] /= conv_fac
 
     distance = data['distance']
     distance_max = data['distance'] + (data['distance'] * 0.1)
-    pattern = re.compile('[0-9]*')
     checkpoint = data['checkpoint']
     speeds = data['speeds']
     low_speed = speeds[str(distance)]['low']
     is_valid_checkpoint = True
 
-    if is_valid_checkpoint:
-        if low_speed <= int(checkpoint) > distance_max:
-            is_valid_checkpoint = False
+    # if low_speed <= int(checkpoint) > distance_max:
+    #     is_valid_checkpoint = False
 
     if is_valid_checkpoint:
         data['checkpoint'] = int(data['checkpoint'])
@@ -133,6 +135,10 @@ def calc_times():
 
 @app.route("/_get_start_date_times")
 def get_start_date_times():
+    """
+    Gets the starting date and time.
+    :return: A json object of the times.
+    """
     start_date = request.args.get('startDate', 0, type=str)
     start_time = request.args.get('startTime', 0, type=str)
 
@@ -161,6 +167,70 @@ def get_start_date_times():
     return jsonify(is_valid_date=is_valid_date,
                    is_valid_time=is_valid_time, start_time=start_time,
                    start_date=start_date,  start_close_time=start_close_time)
+
+
+@app.route("/times")
+def open_times():
+    """
+    Opens the times text document in the browser.
+    :return: The times text document.
+    """
+    app.logger.debug("Getting text")
+    return flask.send_from_directory('templates', 'times.txt')
+
+
+@app.route("/_create_times")
+def create_times():
+    """
+    Creates the times text document.
+    :return: A json object.
+    """
+    app.logger.debug("Creating times text")
+    brevet_distance = request.args.get('brevetDistance', 0, type=int)
+    start_date = request.args.get('startDate', 0, type=str)
+    start_time = request.args.get('startTime', 0, type=str)
+    start_open = request.args.get('startOpen', 0, type=str)
+    start_close = request.args.get('startClose', 0, type=str)
+    units = request.args.get('units', 0, type=str)
+    checkpoint_distances = json.loads(request.args.get('checkpointDistances',
+                                                       0, type=str))
+    open_times = json.loads(request.args.get('openTimes', 0, type=str))
+    close_times = json.loads(request.args.get('closeTimes', 0, type=str))
+
+    f = open('templates/times.txt', 'w')
+
+    f.write('{}km BREVET\n'.format(brevet_distance))
+    f.write('Checkpoint       Date       Time \n')
+    f.write('==========       ========== =====\n')
+    f.write('    0km   start: {}\n'.format(start_open))
+    f.write('          close: {}\n'.format(start_close))
+    f.write('                                  \n')
+
+    for dist in checkpoint_distances:
+        dist = str(dist)
+        i = checkpoint_distances.index(dist)
+        open_time = open_times[i]
+        close_time = close_times[i]
+        length = len(dist)
+        if length == 1:
+            space = '    '
+        elif length == 2:
+            space = '   '
+        elif length == 3:
+            space = '  '
+        elif length == 4:
+            space = ' '
+        else:
+            space = ''
+        f.write('{}km    open: {}\n'.format(space + dist, open_time))
+        f.write('          close: {}\n'.format(close_time))
+        f.write('                                  \n')
+
+    f.close()
+
+    success = 'success'
+
+    return jsonify(success=success)
 
 
 # Other Functions
@@ -238,6 +308,14 @@ def get_date_time(data, speed, time_type):
 
 
 def get_total(checkpoint, total, speeds, speed):
+    """
+    Calculates and returns the open and close times for a checkpoint.
+    :param checkpoint: The checkpoint to calculate times for.
+    :param total: The current total, used for recursion.
+    :param speeds: The speeds table (dict).
+    :param speed: The speed key into the table.
+    :return: The computed total hours from the starting checkpoint.
+    """
     if 0 < checkpoint <= 200:
         tmp = checkpoint
         checkpoint = 0

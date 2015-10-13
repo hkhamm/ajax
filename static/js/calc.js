@@ -4,13 +4,9 @@
  * @date: Fall 2015
  */
 
-// TODO handle output miles on text document
-// TODO handle custom output dates everywhere?
-// TODO write unit tests
-// TODO last checkpoint between the brevet distance and that distance plus 10%
-
 var calc = {};
 
+// jQuery HTML elements
 calc.distanceSelector = $('#brevetDistance');
 calc.startDateField = $('#startDate');
 calc.startTimeField = $('#startTime');
@@ -23,17 +19,50 @@ calc.addButton = $('.btn-add');
 calc.removeButton = $('.btn-remove');
 calc.textButton = $('#textButton');
 
-calc.isNewSession = true;
-calc.checkpoints = [];
+// Printing variables
 calc.checkpointVals = [];
 calc.openTimes = [];
 calc.closeTimes = [];
-calc.checkpointCount = 1;
+
+calc.isNewSession = true;
+calc.checkpoints = [];  // could replace checkpointList with this after refactor
+
+calc.checkpointCount = 1;  // This can just be a call to checkpointList.length
+//calc.checkpointList = [];
+
+//calc.Checkpoint = function() {
+//  var that = {};
+//
+//  that.object = {};
+//  that.label = '';
+//  that.distance = 0;
+//  that.location = '';
+//  that.open_time = '';
+//  that.close_time = '';
+//  that.num = 0;
+//  that.id = '';
+//
+//  return that;
+//};
+
+// TODO last checkpoint between the brevet distance and that distance plus 10%
+// TODO rewrite to use Checkpoint class, use class to find out which is last
+// TODO reset checkpoints after change is units
 
 /**
  * Sets a checkpoint's open and close datetimes.
  */
 calc.setCheckpoint = function(that) {
+  //var newCheckpoint = calc.Checkpoint();
+  //newCheckpoint.object = that;
+  //newCheckpoint.label = '';
+  //newCheckpoint.distance = that.val();
+  //newCheckpoint.location = '';
+  //newCheckpoint.open_time = '';
+  //newCheckpoint.close_time = '';
+  //newCheckpoint.num = 0;
+  //newCheckpoint.id = '';
+
   var openField = that.parents('.form-group').find('#openField');
   var closeField = that.parents('.form-group').find('#closeField');
 
@@ -211,11 +240,26 @@ calc.startTimeField.change(function() {
 });
 
 /**
- * Listens for changes to checkpoint distance fields.
+ * Listens for changes to the first checkpoint's distance field.
  */
 $('#checkpoint').change(function() {
   calc.setCheckpoint($(this));
 });
+
+/**
+ * Listens for changes to the dates radio buttons.
+ */
+$('#dates input:radio').change(function() {
+  calc.resetCheckpoints();
+});
+
+/**
+ * Listens for changes to the units radio buttons.
+ */
+$('#units input:radio').change(function() {
+  calc.resetCheckpoints();
+});
+
 
 /**
  * Listens for clicks on the add checkpoint button.
@@ -259,6 +303,9 @@ calc.removeButton.click(function(e) {
   return false;
 });
 
+/**
+ * Listens for clicks on the generate text button.
+ */
 calc.textButton.click(function() {
   var brevetDistance = $("#brevetDistance option:selected").val();
   var startDate = calc.startDateField.val();
@@ -289,9 +336,7 @@ calc.textButton.click(function() {
     }
   }
 
-  console.log(JSON.stringify(checkpointDistances));
-
-  $.getJSON($SCRIPT_ROOT + '/_create_times', {
+  $.getJSON($SCRIPT_ROOT + '/_create_text', {
     brevetDistance: brevetDistance,
     startDate: startDate,
     startTime: startTime,
@@ -303,12 +348,7 @@ calc.textButton.click(function() {
     openTimes: JSON.stringify(openTimes),
     closeTimes: JSON.stringify(closeTimes)
   });
-  window.open('/times');
-});
-
-$('#dates input:radio').change(function() {
-  console.log('date format change');
-  calc.resetCheckpoints();
+  window.open('/text');
 });
 
 

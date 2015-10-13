@@ -84,10 +84,10 @@ def calc_times():
 
     dates = data['dates']
     distance = data['distance']
-    distance_max = data['distance'] + (data['distance'] * 0.1)
+    distance_max = data['distance'] + (data['distance'] * 0.2)
     checkpoint = data['checkpoint']
     speeds = data['speeds']
-    low_speed = speeds[str(distance)]['low']
+    # low_speed = speeds[str(distance)]['low']
     is_valid_checkpoint = True
 
     if int(checkpoint) > distance_max:
@@ -105,11 +105,6 @@ def calc_times():
             dates + ' HH:mm')
         close_time = get_date_time(data, 'min', 'close').format(
             dates + ' HH:mm')
-
-        # if open_time == checkpoint:
-        #     open_time = 'Error'
-        # if close_time == checkpoint:
-        #     close_time = 'Error'
 
         start_date = data['start_date']
         start_time = data['start_time']
@@ -169,8 +164,8 @@ def get_start_date_times():
                    start_date=start_date,  start_close_time=start_close_time)
 
 
-@app.route("/times")
-def open_times():
+@app.route("/text")
+def open_text():
     """
     Opens the times text document in the browser.
     :return: The times text document.
@@ -179,8 +174,8 @@ def open_times():
     return flask.send_from_directory('templates', 'times.txt')
 
 
-@app.route("/_create_times")
-def create_times():
+@app.route("/_create_text")
+def create_text():
     """
     Creates the times text document.
     :return: A json object.
@@ -258,7 +253,7 @@ def get_date_time(data, speed, time_type):
     6) Convert total into hours and minutes
     7) Add hours and minutes to the starting datetime
 
-    Final checkpoint closing times for 200 km and 400 km brevets:
+    Final checkpoint closing times:
     - 200 km: 13.5 hours rather than 13.33 hours
     - 400 km: 27 hours rather than 26.66 hours
 
@@ -269,41 +264,72 @@ def get_date_time(data, speed, time_type):
     """
     speeds = data['speeds']
     distance = data['distance']
+    distance_max = distance + (distance * 0.2)
     checkpoint = data['checkpoint']
     start_date = data['start_date']
     start_time = data['start_time']
 
-    total = 0
-
-    while checkpoint:
-        if 0 < checkpoint <= 200:
-            tmp = checkpoint
-            checkpoint = 0
-            total += tmp / speeds['200'][speed]
-        elif 200 < checkpoint <= 400:
-            tmp = checkpoint - 200
-            checkpoint -= tmp
-            total += tmp / speeds['400'][speed]
-        elif 400 < checkpoint <= 600:
-            tmp = checkpoint - 400
-            checkpoint -= tmp
-            total += tmp / speeds['600'][speed]
-        elif 600 < checkpoint <= 1000:
-            tmp = checkpoint - 600
-            checkpoint -= tmp
-            total += tmp / speeds['1000'][speed]
-        elif 1000 < checkpoint <= 1300:
-            tmp = checkpoint - 1000
-            checkpoint -= tmp
-            total += tmp / speeds['1300'][speed]
-
-    hours = int(total)
-
-    if data['checkpoint'] == 200 and time_type == 'close':
-        mins = 30
-    elif data['checkpoint'] == 400 and time_type == 'close':
-        mins = 60
+    if distance == 200 and 200 <= checkpoint <= distance_max:
+        if time_type == 'close':
+            hours = 13
+            mins = 30
+        else:
+            hours = 5
+            mins = 53
+    elif distance == 300 and 300 <= checkpoint <= distance_max:
+        if time_type == 'close':
+            hours = 20
+            mins = 0
+        else:
+            hours = 9
+            mins = 0
+    elif distance == 400 and 400 <= checkpoint <= distance_max:
+        if time_type == 'close':
+            hours = 27
+            mins = 0
+        else:
+            hours = 12
+            mins = 8
+    elif distance == 600 and 600 <= checkpoint <= distance_max:
+        if time_type == 'close':
+            hours = 40
+            mins = 0
+        else:
+            hours = 18
+            mins = 48
+    elif distance == 1000 and 1000 <= checkpoint <= distance_max:
+        if time_type == 'close':
+            hours = 75
+            mins = 0
+        else:
+            hours = 33
+            mins = 5
     else:
+        total = 0
+
+        while checkpoint:
+            if 0 < checkpoint <= 200:
+                tmp = checkpoint
+                checkpoint = 0
+                total += tmp / speeds['200'][speed]
+            elif 200 < checkpoint <= 400:
+                tmp = checkpoint - 200
+                checkpoint -= tmp
+                total += tmp / speeds['400'][speed]
+            elif 400 < checkpoint <= 600:
+                tmp = checkpoint - 400
+                checkpoint -= tmp
+                total += tmp / speeds['600'][speed]
+            elif 600 < checkpoint <= 1000:
+                tmp = checkpoint - 600
+                checkpoint -= tmp
+                total += tmp / speeds['1000'][speed]
+            elif 1000 < checkpoint <= 1300:
+                tmp = checkpoint - 1000
+                checkpoint -= tmp
+                total += tmp / speeds['1300'][speed]
+
+        hours = int(total)
         mins = round((total - hours) * 60)
 
     tmp_time = "{} {}".format(start_date, start_time)
@@ -312,39 +338,39 @@ def get_date_time(data, speed, time_type):
     return date_time
 
 
-def get_total(checkpoint, total, speeds, speed):
-    """
-    Calculates and returns the open and close times for a checkpoint.
-    :param checkpoint: The checkpoint to calculate times for.
-    :param total: The current total, used for recursion.
-    :param speeds: The speeds table (dict).
-    :param speed: The speed key into the table.
-    :return: The computed total hours from the starting checkpoint.
-    """
-    if 0 < checkpoint <= 200:
-        tmp = checkpoint
-        checkpoint = 0
-        total += tmp / speeds['200'][speed]
-    elif 200 < checkpoint <= 400:
-        tmp = checkpoint - 200
-        checkpoint -= tmp
-        total += tmp / speeds['400'][speed]
-    elif 400 < checkpoint <= 600:
-        tmp = checkpoint - 400
-        checkpoint -= tmp
-        total += tmp / speeds['600'][speed]
-    elif 600 < checkpoint <= 1000:
-        tmp = checkpoint - 600
-        checkpoint -= tmp
-        total += tmp / speeds['1000'][speed]
-    elif 1000 < checkpoint <= 1300:
-        tmp = checkpoint - 1000
-        checkpoint -= tmp
-        total += tmp / speeds['1300'][speed]
-    if checkpoint:
-        get_total(checkpoint, total, speeds, speed)
-
-    return total
+# def get_total(checkpoint, total, speeds, speed):
+#     """
+#     Calculates and returns the open and close times for a checkpoint.
+#     :param checkpoint: The checkpoint to calculate times for.
+#     :param total: The current total, used for recursion.
+#     :param speeds: The speeds table (dict).
+#     :param speed: The speed key into the table.
+#     :return: The computed total hours from the starting checkpoint.
+#     """
+#     if 0 < checkpoint <= 200:
+#         tmp = checkpoint
+#         checkpoint = 0
+#         total += tmp / speeds['200'][speed]
+#     elif 200 < checkpoint <= 400:
+#         tmp = checkpoint - 200
+#         checkpoint -= tmp
+#         total += tmp / speeds['400'][speed]
+#     elif 400 < checkpoint <= 600:
+#         tmp = checkpoint - 400
+#         checkpoint -= tmp
+#         total += tmp / speeds['600'][speed]
+#     elif 600 < checkpoint <= 1000:
+#         tmp = checkpoint - 600
+#         checkpoint -= tmp
+#         total += tmp / speeds['1000'][speed]
+#     elif 1000 < checkpoint <= 1300:
+#         tmp = checkpoint - 1000
+#         checkpoint -= tmp
+#         total += tmp / speeds['1300'][speed]
+#     if checkpoint:
+#         get_total(checkpoint, total, speeds, speed)
+#
+#     return total
 
 
 # Functions used within the templates

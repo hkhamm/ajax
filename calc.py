@@ -68,6 +68,7 @@ def calc_times():
             'start_time': request.args.get('startTime', 0, type=str),
             'checkpoint': request.args.get('checkpoint', 0, type=int),
             'units': request.args.get('units', 0, type=str),
+            'dates': request.args.get('dates', 0, type=str),
             'speeds': {
                 '200': {'low': 0, 'min': 15, 'max': 34},
                 '300': {'low': 200, 'min': 15, 'max': 32},
@@ -81,6 +82,7 @@ def calc_times():
         conv_fac = 0.621371
         data['distance'] /= conv_fac
 
+    dates = data['dates']
     distance = data['distance']
     distance_max = data['distance'] + (data['distance'] * 0.1)
     checkpoint = data['checkpoint']
@@ -100,9 +102,9 @@ def calc_times():
             data['start_time'] = DEFAULT_DATE_TIME.format('12:00')
 
         open_time = get_date_time(data, 'max', 'open').format(
-            'MM/DD HH:mm')
+            dates + ' HH:mm')
         close_time = get_date_time(data, 'min', 'close').format(
-            'MM/DD HH:mm')
+            dates + ' HH:mm')
 
         # if open_time == checkpoint:
         #     open_time = 'Error'
@@ -112,7 +114,7 @@ def calc_times():
         start_date = data['start_date']
         start_time = data['start_time']
 
-        start_open_date = arrow.get(start_date, 'YYYY/MM/DD').format('MM/DD')
+        start_open_date = arrow.get(start_date, 'YYYY/MM/DD').format(dates)
 
         start_close_time = arrow.get(start_time, 'HH:mm').replace(
             hours=+1).format('HH:mm')
@@ -190,6 +192,7 @@ def create_times():
     start_open = request.args.get('startOpen', 0, type=str)
     start_close = request.args.get('startClose', 0, type=str)
     units = request.args.get('units', 0, type=str)
+    dates = request.args.get('dates', 0, type=str)
     checkpoint_distances = json.loads(request.args.get('checkpointDistances',
                                                        0, type=str))
     open_times = json.loads(request.args.get('openTimes', 0, type=str))

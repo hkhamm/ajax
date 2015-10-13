@@ -43,6 +43,7 @@ calc.setCheckpoint = function(that) {
   var checkpoint = that.val();
   var num = calc.checkpointCount + 1;
   var units = $('#units input:radio:checked').val();
+  var dates = $('#dates input:radio:checked').val();
 
   var len = checkpoint.length;
   for (var i = 0; i < len; i++) {
@@ -61,7 +62,8 @@ calc.setCheckpoint = function(that) {
     distance: distance,
     startDate: startDate,
     startTime: startTime,
-    units: units
+    units: units,
+    dates: dates
   }, function(data) {
     if (!data.is_valid_checkpoint &&
         !$('#alert_placeholder').find('#checkpointAlert' + num).length) {
@@ -74,12 +76,13 @@ calc.setCheckpoint = function(that) {
 
       if (calc.isNewSession) {
         calc.isNewSession = false;
-        calc.setStartOpenClose(data.start_open_date, data.start_time,
-          data.start_close_time);
       } else if (checkpoint === '') {
         openField.val('Open time');
         closeField.val('Close time');
       }
+
+      calc.setStartOpenClose(data.start_open_date, data.start_time,
+          data.start_close_time);
 
       startDate = calc.startDateField.val();
       startTime = calc.startTimeField.val();
@@ -125,18 +128,6 @@ calc.setStartDateTime = function(startDate, startTime) {
       }
       // highlight bad fields?
       return
-    }
-
-    if (startDate !== '' && startTime !== '') {
-      calc.setStartOpenClose(startDate, startTime, data.start_close_time);
-    } else if (!calc.isNewSession && startDate === '' && startTime !== '') {
-      calc.startTimeField.val(data.start_date);
-      calc.setStartOpenClose(startDate, startTime, data.start_close_time);
-    } else if (!calc.isNewSession && startDate !== '' && startTime === '') {
-      calc.startTimeField.val(data.start_time);
-      calc.setStartOpenClose(startDate, startTime, data.start_close_time);
-    } else if (!calc.isNewSession && startDate === '' && startTime === '') {
-      calc.setStartOpenClose('', '');
     }
 
     calc.resetCheckpoints();
@@ -275,6 +266,7 @@ calc.textButton.click(function() {
   var startOpen = calc.startOpenField.val();
   var startClose = calc.startCloseField.val();
   var units = $('#units input:radio:checked').val();
+  var dates = $('#dates input:radio:checked').val();
   var checkpointDistances = [];
   var openTimes = [];
   var closeTimes = [];
@@ -306,11 +298,17 @@ calc.textButton.click(function() {
     startOpen: startOpen,
     startClose: startClose,
     units: units,
+    dates: dates,
     checkpointDistances: JSON.stringify(checkpointDistances),
     openTimes: JSON.stringify(openTimes),
     closeTimes: JSON.stringify(closeTimes)
   });
   window.open('/times');
+});
+
+$('#dates input:radio').change(function() {
+  console.log('date format change');
+  calc.resetCheckpoints();
 });
 
 

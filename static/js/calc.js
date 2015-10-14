@@ -25,25 +25,8 @@ calc.openTimes = [];
 calc.closeTimes = [];
 
 calc.isNewSession = true;
-calc.checkpoints = [];  // could replace checkpointList with this after refactor
-
-calc.checkpointCount = 1;  // This can just be a call to checkpointList.length
-//calc.checkpointList = [];
-
-//calc.Checkpoint = function() {
-//  var that = {};
-//
-//  that.object = {};
-//  that.label = '';
-//  that.distance = 0;
-//  that.location = '';
-//  that.open_time = '';
-//  that.close_time = '';
-//  that.num = 0;
-//  that.id = '';
-//
-//  return that;
-//};
+calc.checkpoints = [];
+calc.checkpointCount = 1;
 
 // TODO last checkpoint between the brevet distance and that distance plus 10%
 // TODO rewrite to use Checkpoint class, use class to find out which is last
@@ -53,15 +36,6 @@ calc.checkpointCount = 1;  // This can just be a call to checkpointList.length
  * Sets a checkpoint's open and close datetimes.
  */
 calc.setCheckpoint = function(that) {
-  //var newCheckpoint = calc.Checkpoint();
-  //newCheckpoint.object = that;
-  //newCheckpoint.label = '';
-  //newCheckpoint.distance = that.val();
-  //newCheckpoint.location = '';
-  //newCheckpoint.open_time = '';
-  //newCheckpoint.close_time = '';
-  //newCheckpoint.num = 0;
-  //newCheckpoint.id = '';
 
   var openField = that.parents('.form-group').find('#openField');
   var closeField = that.parents('.form-group').find('#closeField');
@@ -350,32 +324,3 @@ calc.textButton.click(function() {
   });
   window.open('/text');
 });
-
-
-//$(document).ready(function(){
-//// Do the following when the page is finished loading
-//
-//   // When a field named 'miles' is changed ...
-//   $('input[name="miles"]').change(
-//       // ... execute this function
-//       function(){
-//           var e_miles = $(this).val();
-//
-//           var target = $(this).parents(".row").find(".times");
-//
-//           // DEBUG: How do I replace the 'times' field?
-//           // alert("Content of the field I want to change: " +
-//           //   target.html());
-//
-//           // AJAX request
-//           $.getJSON($SCRIPT_ROOT + '/_calc_times',
-//               // The object to pass to the server
-//               { miles: e_miles },
-//               // The function to call with the response
-//               function(data) {
-//                  var times = data.result;
-//                  // alert("Got a response: " +  times);
-//                  target.text(times);
-//               }); // End of the call to getJSON
-//       });  // End of the function to be called when field changes
-//});   // end of what we do on document ready

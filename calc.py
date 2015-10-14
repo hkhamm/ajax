@@ -6,19 +6,19 @@ ACP Brevet Time Calculator flask app
 """
 
 import flask
-# from flask import render_template
+from flask import render_template
 from flask import request
-# from flask import url_for
+from flask import url_for
 from flask import jsonify  # For AJAX transactions
-# from flask import flash
+from flask import flash
 
 import json
 import logging
 
 # Date handling
 import arrow  # Replacement for datetime, based on moment.js
-# import datetime  # But we still need time
-# from dateutil import tz  # For interpreting local times
+import datetime  # But we still need time
+from dateutil import tz  # For interpreting local times
 import CONFIG
 import uuid
 import re

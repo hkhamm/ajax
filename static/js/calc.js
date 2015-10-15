@@ -79,9 +79,6 @@ calc.setCheckpoint = function(that) {
 
       if (calc.isNewSession) {
         calc.isNewSession = false;
-      } else if (checkpoint === '') {
-        openField.val('Open time');
-        closeField.val('Close time');
       }
 
       calc.setStartOpenClose(data.start_open_date, data.start_time,
@@ -98,8 +95,13 @@ calc.setCheckpoint = function(that) {
         calc.startTimeField.val(data.start_time);
       }
 
-      openField.val(data.open_time);
-      closeField.val(data.close_time);
+      if (checkpoint === '') {
+        openField.val('Open time');
+        closeField.val('Close time');
+      } else {
+        openField.val(data.open_time);
+        closeField.val(data.close_time);
+      }
     }
   });
 };
@@ -238,9 +240,7 @@ $('#units input:radio').change(function() {
 /**
  * Listens for clicks on the add checkpoint button.
  */
-calc.addButton.click(function(e) {
-  e.preventDefault();
-
+calc.addButton.click(function() {
   calc.checkpointCount += 1;
   var num = calc.checkpointCount + 1;
 
@@ -248,9 +248,9 @@ calc.addButton.click(function(e) {
     $('.btn-remove').removeAttr('disabled');
   }
 
-  var controlForm = $('.checkpoints div:first'),
-      currentEntry = $('.entry:first'),
-      newEntry = $(currentEntry.clone()).appendTo(controlForm);
+  var controlForm = $('.checkpoints div:first');
+  var currentEntry = $('.entry:first');
+  var newEntry = $(currentEntry.clone()).appendTo(controlForm);
 
   newEntry.find('input').val('');
   newEntry.find('.checkpoint-label').text('Checkpoint ' + num);
@@ -264,7 +264,7 @@ calc.addButton.click(function(e) {
 /**
  * Listens for clicks on the remove checkpoint button.
  */
-calc.removeButton.click(function(e) {
+calc.removeButton.click(function() {
   $('.entry:last').remove();
 
   calc.checkpointCount -= 1;
@@ -272,9 +272,6 @@ calc.removeButton.click(function(e) {
   if (calc.checkpointCount <= 1) {
     $(this).attr('disabled', 'disabled')
   }
-
-  e.preventDefault();
-  return false;
 });
 
 /**

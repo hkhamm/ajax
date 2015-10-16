@@ -85,13 +85,17 @@ def calc_times():
     dates = data['dates']
     distance = data['distance']
     distance_max = data['distance'] + (data['distance'] * 0.2)
+    distance_max_10 = data['distance'] + (data['distance'] * 0.1)
     checkpoint = data['checkpoint']
     speeds = data['speeds']
-    # low_speed = speeds[str(distance)]['low']
     is_valid_checkpoint = True
+    is_over_10p = False
 
     if int(checkpoint) > distance_max:
         is_valid_checkpoint = False
+
+    if int(checkpoint) > distance_max_10:
+        is_over_10p = True
 
     if is_valid_checkpoint:
         data['checkpoint'] = int(data['checkpoint'])
@@ -125,7 +129,8 @@ def calc_times():
                    start_date=start_date, start_time=start_time,
                    start_close_time=start_close_time,
                    start_open_date=start_open_date,
-                   is_valid_checkpoint=is_valid_checkpoint)
+                   is_valid_checkpoint=is_valid_checkpoint,
+                   is_over_10p=is_over_10p)
 
 
 @app.route("/_get_start_date_times")
@@ -336,60 +341,6 @@ def get_date_time(data, speed, time_type):
     date_time = arrow.get(tmp_time, 'YYYY/M/D HH:mm').replace(hours=+hours,
                                                               minutes=+mins)
     return date_time
-
-
-# def get_total(checkpoint, total, speeds, speed):
-#     """
-#     Calculates and returns the open and close times for a checkpoint.
-#     :param checkpoint: The checkpoint to calculate times for.
-#     :param total: The current total, used for recursion.
-#     :param speeds: The speeds table (dict).
-#     :param speed: The speed key into the table.
-#     :return: The computed total hours from the starting checkpoint.
-#     """
-#     if 0 < checkpoint <= 200:
-#         tmp = checkpoint
-#         checkpoint = 0
-#         total += tmp / speeds['200'][speed]
-#     elif 200 < checkpoint <= 400:
-#         tmp = checkpoint - 200
-#         checkpoint -= tmp
-#         total += tmp / speeds['400'][speed]
-#     elif 400 < checkpoint <= 600:
-#         tmp = checkpoint - 400
-#         checkpoint -= tmp
-#         total += tmp / speeds['600'][speed]
-#     elif 600 < checkpoint <= 1000:
-#         tmp = checkpoint - 600
-#         checkpoint -= tmp
-#         total += tmp / speeds['1000'][speed]
-#     elif 1000 < checkpoint <= 1300:
-#         tmp = checkpoint - 1000
-#         checkpoint -= tmp
-#         total += tmp / speeds['1300'][speed]
-#     if checkpoint:
-#         get_total(checkpoint, total, speeds, speed)
-#
-#     return total
-
-
-# Functions used within the templates
-# @app.template_filter('fmttime')
-# def format_arrow_time(time):
-#     try:
-#         normal = arrow.get(date)
-#         return normal.format("hh:mm")
-#     except:
-#         return "(bad time)"
-#
-#
-# @app.template_filter('fmtdate')
-# def format_arrow_date(date):
-#     try:
-#         normal = arrow.get(date)
-#         return normal.format("ddd MM/DD/YYYY")
-#     except:
-#         return "(bad date)"
 
 
 if __name__ == "__main__":

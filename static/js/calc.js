@@ -36,7 +36,6 @@ calc.checkpointCount = 1;
  * Sets a checkpoint's open and close datetimes.
  */
 calc.setCheckpoint = function(that) {
-
   var openField = that.parents('.form-group').find('#openField');
   var closeField = that.parents('.form-group').find('#closeField');
 
@@ -74,6 +73,13 @@ calc.setCheckpoint = function(that) {
         ' It must be a number and within the valid distance interval.',
         'checkpointAlert' + num);
         // highlight bad fields?
+    } else if (data.is_over_10p &&
+          !$('#alert_placeholder').find('#finalCheckpointAlert' + num).length) {
+      calc.alert('Checkpoint '+ num + '\'s distance is potentially invalid.' +
+        ' While checkpoints greater than 20% of the brevet distance can be ok' +
+        ', ideally they are no more that 10% greater than the brevet' +
+        ' distance.',
+        'finalCheckpointAlert' + num);
     } else {
       calc.addCheckpoint(that);
 
@@ -307,17 +313,32 @@ calc.textButton.click(function() {
     }
   }
 
-  $.getJSON($SCRIPT_ROOT + '/_create_text', {
-    brevetDistance: brevetDistance,
-    startDate: startDate,
-    startTime: startTime,
-    startOpen: startOpen,
-    startClose: startClose,
-    units: units,
-    dates: dates,
-    checkpointDistances: JSON.stringify(checkpointDistances),
-    openTimes: JSON.stringify(openTimes),
-    closeTimes: JSON.stringify(closeTimes)
-  });
-  window.open('/text');
+  if (checkpointDistances[length - 1] < brevetDistance &&
+      !$('#alert_placeholder').find('#checkpointAlert' + length).length) {
+    calc.alert('It looks like you may not have a final checkpoint. The final' +
+      ' checkpoint must be equal to or only slightly greater than the Brevet' +
+      ' Distance you selected.',
+      'checkpointAlert' + length);
+  } else if (checkpointDistances[length - 1] >= brevetDistance &&
+      checkpointDistances[length - 2] >= brevetDistance &&
+      !$('#alert_placeholder').find('#checkpointAlert' + length - 1).length) {
+    calc.alert('It looks like you may have multiple final checkpoints.',
+      'checkpointAlert' + length - 1);
+  } else {
+    $.getJSON($SCRIPT_ROOT + '/_create_text', {
+      brevetDistance: brevetDistance,
+      startDate: startDate,
+      startTime: startTime,
+      startOpen: startOpen,
+      startClose: startClose,
+      units: units,
+      dates: dates,
+      checkpointDistances: JSON.stringify(checkpointDistances),
+      openTimes: JSON.stringify(openTimes),
+      closeTimes: JSON.stringify(closeTimes)
+    });
+    window.open('/text');
+  }
+
+
 });

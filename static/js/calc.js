@@ -28,6 +28,10 @@ calc.closeTimes = [];
 calc.isNewSession = true;
 calc.checkpoints = [];
 calc.checkpointCount = 1;
+calc.units = 'km';
+
+// TODO look at everything that deals with validation and see if it works
+// TODO ^ with miles
 
 /**
  * Sets a checkpoint's open and close datetimes.
@@ -184,8 +188,14 @@ calc.checkForLetters = function(checkpoint, num) {
  * @param num is the new checkpoint's number.
  */
 calc.checkForFinalCheckpoint = function(checkpoint, distance, num) {
-  checkpoint = parseInt(checkpoint);
-  distance = parseInt(distance);
+  if (calc.units === 'miles') {
+    var conv_fac = 0.621371;
+    checkpoint /= conv_fac;
+    distance /= conv_fac;
+  } else {
+    checkpoint = parseInt(checkpoint);
+    distance = parseInt(distance);
+  }
 
   if (checkpoint >= distance) {
     $('.final-checkpoint-message').hide();
@@ -201,9 +211,15 @@ calc.checkForFinalCheckpoint = function(checkpoint, distance, num) {
  * @param num is the number of the previous checkpoint.
  */
 calc.checkForMultiFinals = function(checkpoint, distance, num) {
-  checkpoint = parseInt(checkpoint);
-  distance = parseInt(distance);
   var length = calc.checkpoints.length;
+
+  if (calc.units === 'miles') {
+    checkpoint /= 0.621371;
+    distance /= 0.621371;
+  } else {
+    checkpoint = parseInt(checkpoint);
+    distance = parseInt(distance);
+  }
 
   for (var i = 0; i < length; i++) {
     if (calc.checkpoints[i] !== undefined) {
@@ -226,12 +242,25 @@ calc.checkForMultiFinals = function(checkpoint, distance, num) {
  * @param num is the number of the previous checkpoint.
  */
 calc.checkOrder = function(checkpoint, num) {
-  checkpoint = parseInt(checkpoint);
+  var thisVal;
   var length = calc.checkpoints.length;
+
+  if (calc.units === 'miles') {
+    checkpoint /= 0.621371;
+  } else {
+    checkpoint = parseInt(checkpoint);
+  }
+
   for (var i = 0; i < length; i++) {
     if (calc.checkpoints[i] !== undefined) {
+      if (calc.units === 'miles') {
+        thisVal = calc.checkpoints[i].val() / 0.621371;
+      } else {
+        thisVal = calc.checkpoints[i].val()
+      }
+      var thisNum = parseInt(calc.getCheckpointNum(calc.checkpoints[i]), 10);
 
-      if (calc.checkpoints[i].val() > checkpoint &&
+      if ((num - 1) === thisNum && thisVal > checkpoint &&
           !calc.alert_placeholder.find('#orderAlert' + num).length) {
         calc.alert('You need to create checkpoints in ascending order.',
           'orderAlert' + num);
@@ -330,6 +359,11 @@ $('#dates input:radio').change(function() {
  * Listens for changes to the units radio buttons.
  */
 $('#units input:radio').change(function() {
+  if (calc.units === 'km') {
+    calc.units = 'miles';
+  } else {
+    calc.units = 'km';
+  }
   calc.resetCheckpoints();
 });
 

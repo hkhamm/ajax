@@ -47,6 +47,14 @@ calc.setCheckpoint = function(that) {
   var units = $('#units input:radio:checked').val();
   var dates = $('#dates input:radio:checked').val();
 
+  calc.checkpointVals[num - 1] = that.val();
+
+  if (checkpoint >= distance && num != 2 &&
+      !$('#alert_placeholder').find('#checkpointAlert' + num).length) {
+    calc.alert('It looks like you may have multiple final checkpoints.',
+    'checkpointAlert' + num);
+  }
+
   var len = checkpoint.length;
   for (var i = 0; i < len; i++) {
     if (isNaN(parseInt(checkpoint.charAt(i))) &&

@@ -45,9 +45,11 @@ calc.setCheckpoint = function(that) {
 
   calc.checkpointVals[num - 1] = that.val();
 
-  calc.checkForMultiFinals(checkpoint, num - 1);
+  calc.checkForMultiFinals(checkpoint, distance, num - 1);
 
   calc.checkForLetters(checkpoint, num);
+
+  calc.checkOrder(checkpoint, num);
 
   $.getJSON($SCRIPT_ROOT + '/_calc_date_times', {
     checkpoint: checkpoint,
@@ -157,8 +159,8 @@ calc.addCheckpoint = function(checkpoint) {
 
 /**
  * Checks if the new checkpoint has letters instead of numbers in the distance.
- * @param checkpoint the new checkpoint's distance.
- * @param num the new checkpoint's number.
+ * @param checkpoint is the new checkpoint's distance.
+ * @param num is the new checkpoint's number.
  */
 calc.checkForLetters = function(checkpoint, num) {
   var len = checkpoint.length;
@@ -176,53 +178,85 @@ calc.checkForLetters = function(checkpoint, num) {
 
 /**
  * Checks for a final checkpoint and hides or shows the message.
- * @param checkpoint the new checkpoint's distance.
- * @param distance the brevet distance.
- * @param num the new checkpoint's number.
+ * @param checkpoint is the new checkpoint's distance.
+ * @param distance is the brevet distance.
+ * @param num is the new checkpoint's number.
  */
 calc.checkForFinalCheckpoint = function(checkpoint, distance, num) {
+  checkpoint = parseInt(checkpoint);
+  distance = parseInt(distance);
+
   if (checkpoint >= distance) {
     $('.final-checkpoint-message').hide();
-  } else if (checkpoint === '' && num === calc.checkpointVals.length) {
+  } else if (num === calc.checkpointVals.length && checkpoint < distance) {
     $('.final-checkpoint-message').show();
   }
 };
 
 /**
  * Check for multiple final checkpoints.
- * @param checkpoint the new 's checkpoint's distance.
- * @param num the number of the previous checkpoint.
+ * @param checkpoint is the new 's checkpoint's distance.
+ * @param distance is the brevet distance.
+ * @param num is the number of the previous checkpoint.
  */
-calc.checkForMultiFinals = function(checkpoint, num) {
+calc.checkForMultiFinals = function(checkpoint, distance, num) {
+  checkpoint = parseInt(checkpoint);
+  distance = parseInt(distance);
   var length = calc.checkpoints.length;
+
   for (var i = 0; i < length; i++) {
     if (calc.checkpoints[i] !== undefined) {
       var thisNum = parseInt(calc.getCheckpointNum(calc.checkpoints[i]), 10);
+      var thisVal = calc.checkpoints[i].val();
 
-      console.log('num ' + num);
-      console.log('thisNum ' + thisNum);
-      console.log('equal vals ' + (calc.checkpoints[i].val() >= checkpoint));
-
-      if (num === thisNum && calc.checkpoints[i].val() >= checkpoint &&
+      if (num === thisNum && thisVal >= distance && checkpoint >= distance &&
           !$('#alert_placeholder').find('#checkpointAlert' + num).length) {
         calc.alert('It looks like you may have multiple final checkpoints.',
           'checkpointAlert' + num);
+        break;
       }
     }
   }
 };
 
+/**
+ * Checks the order of checkpoint distances.
+ * @param checkpoint is the new 's checkpoint's distance.
+ * @param num is the number of the previous checkpoint.
+ */
+calc.checkOrder = function(checkpoint, num) {
+  checkpoint = parseInt(checkpoint);
+  var length = calc.checkpoints.length;
+  for (var i = 0; i < length; i++) {
+    if (calc.checkpoints[i] !== undefined) {
+
+      if (calc.checkpoints[i].val() > checkpoint &&
+          !$('#alert_placeholder').find('#orderAlert' + num).length) {
+        calc.alert('You need to create checkpoints in ascending order.',
+          'orderAlert' + num);
+      }
+    }
+  }
+};
+
+/**
+ * Checks booleans returned from the server.
+ * @param data is the data returns from the server.
+ * @param num is the new checkpoint's number.
+ * @returns {boolean} true if both checks are true, false if not
+ */
 calc.isValidDistance = function(data, num) {
+  var alert_placeholder = $('#alert_placeholder');
   var valid = true;
   if (!data.is_valid_checkpoint &&
-      !$('#alert_placeholder').find('#checkpointAlert' + num).length) {
+      !alert_placeholder.find('#checkpointAlert' + num).length) {
     calc.alert('Checkpoint '+ num + '\'s distance is invalid.' +
       ' It must be a number and within the valid distance interval.',
       'checkpointAlert' + num);
       // highlight bad fields?
     valid = false;
   } else if (data.is_over_10p &&
-        !$('#alert_placeholder').find('#finalCheckpointAlert' + num).length) {
+        !alert_placeholder.find('#finalCheckpointAlert' + num).length) {
     calc.alert('Checkpoint ' + num + '\'s distance is potentially invalid.' +
       ' While checkpoints greater than 20% of the brevet distance can be ok' +
       ', ideally they are no more that 10% greater than the brevet' +

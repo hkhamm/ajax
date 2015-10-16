@@ -18,6 +18,7 @@ calc.checkpoint2Close = $('#closeField');
 calc.addButton = $('.btn-add');
 calc.removeButton = $('.btn-remove');
 calc.textButton = $('#textButton');
+calc.alert_placeholder = $('#alert_placeholder');
 
 // Printing variables
 calc.checkpointVals = [];
@@ -108,13 +109,13 @@ calc.setStartDateTime = function(startDate, startTime) {
 
     if (!isValidDate || !isValidTime) {
       if (!isValidDate &&
-          !$('#alert_placeholder').find('#startDateAlert').length) {
+          !calc.alert_placeholder.find('#startDateAlert').length) {
         calc.alert('The Starting Date you entered is invalid. It must have' +
           ' this form: YYYY/MM/DD', 'startDateAlert');
         // highlight bad fields?
       }
       if (!isValidTime &&
-          !($('#alert_placeholder').find('startTimeAlert').length)) {
+          !(calc.alert_placeholder.find('startTimeAlert').length)) {
         calc.alert('The Starting Time you entered is invalid. It must be' +
         ' in 24 format and have this form: HH:mm', 'startTimeAlert');
       }
@@ -166,7 +167,7 @@ calc.checkForLetters = function(checkpoint, num) {
   var len = checkpoint.length;
   for (var i = 0; i < len; i++) {
     if (isNaN(parseInt(checkpoint.charAt(i))) &&
-        !$('#alert_placeholder').find('#checkpointAlert' + num).length) {
+        !calc.alert_placeholder.find('#checkpointAlert' + num).length) {
       calc.alert('Checkpoint '+ num + '\'s distance is invalid.' +
       ' It must be a number and within the valid distance interval.',
       'checkpointAlert' + num);
@@ -210,7 +211,7 @@ calc.checkForMultiFinals = function(checkpoint, distance, num) {
       var thisVal = calc.checkpoints[i].val();
 
       if (num === thisNum && thisVal >= distance && checkpoint >= distance &&
-          !$('#alert_placeholder').find('#checkpointAlert' + num).length) {
+          !calc.alert_placeholder.find('#checkpointAlert' + num).length) {
         calc.alert('It looks like you may have multiple final checkpoints.',
           'checkpointAlert' + num);
         break;
@@ -231,7 +232,7 @@ calc.checkOrder = function(checkpoint, num) {
     if (calc.checkpoints[i] !== undefined) {
 
       if (calc.checkpoints[i].val() > checkpoint &&
-          !$('#alert_placeholder').find('#orderAlert' + num).length) {
+          !calc.alert_placeholder.find('#orderAlert' + num).length) {
         calc.alert('You need to create checkpoints in ascending order.',
           'orderAlert' + num);
       }
@@ -246,17 +247,16 @@ calc.checkOrder = function(checkpoint, num) {
  * @returns {boolean} true if both checks are true, false if not
  */
 calc.isValidDistance = function(data, num) {
-  var alert_placeholder = $('#alert_placeholder');
   var valid = true;
   if (!data.is_valid_checkpoint &&
-      !alert_placeholder.find('#checkpointAlert' + num).length) {
+      !calc.alert_placeholder.find('#checkpointAlert' + num).length) {
     calc.alert('Checkpoint '+ num + '\'s distance is invalid.' +
       ' It must be a number and within the valid distance interval.',
       'checkpointAlert' + num);
       // highlight bad fields?
     valid = false;
   } else if (data.is_over_10p &&
-        !alert_placeholder.find('#finalCheckpointAlert' + num).length) {
+        !calc.alert_placeholder.find('#finalCheckpointAlert' + num).length) {
     calc.alert('Checkpoint ' + num + '\'s distance is potentially invalid.' +
       ' While checkpoints greater than 20% of the brevet distance can be ok' +
       ', ideally they are no more that 10% greater than the brevet' +
@@ -403,32 +403,17 @@ calc.textButton.click(function() {
     }
   }
 
-  if (checkpointDistances[length - 1] < brevetDistance &&
-      !$('#alert_placeholder').find('#checkpointAlert' + length).length) {
-    calc.alert('It looks like you may not have a final checkpoint. The final' +
-      ' checkpoint must be equal to or only slightly greater than the Brevet' +
-      ' Distance you selected.',
-      'checkpointAlert' + length);
-  } else if (checkpointDistances[length - 1] >= brevetDistance &&
-      checkpointDistances[length - 2] >= brevetDistance &&
-      !$('#alert_placeholder').find('#checkpointAlert' + length - 1).length) {
-    calc.alert('It looks like you may have multiple final checkpoints.',
-      'checkpointAlert' + length - 1);
-  } else {
-    $.getJSON($SCRIPT_ROOT + '/_create_text', {
-      brevetDistance: brevetDistance,
-      startDate: startDate,
-      startTime: startTime,
-      startOpen: startOpen,
-      startClose: startClose,
-      units: units,
-      dates: dates,
-      checkpointDistances: JSON.stringify(checkpointDistances),
-      openTimes: JSON.stringify(openTimes),
-      closeTimes: JSON.stringify(closeTimes)
-    });
-    window.open('/text');
-  }
-
-
+  $.getJSON($SCRIPT_ROOT + '/_create_text', {
+    brevetDistance: brevetDistance,
+    startDate: startDate,
+    startTime: startTime,
+    startOpen: startOpen,
+    startClose: startClose,
+    units: units,
+    dates: dates,
+    checkpointDistances: JSON.stringify(checkpointDistances),
+    openTimes: JSON.stringify(openTimes),
+    closeTimes: JSON.stringify(closeTimes)
+  });
+  window.open('/text');
 });

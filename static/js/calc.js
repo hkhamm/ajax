@@ -55,6 +55,12 @@ calc.setCheckpoint = function(that) {
     'checkpointAlert' + num);
   }
 
+  if (checkpoint >= distance) {
+    $('.final-checkpoint-message').hide();
+  } else if (checkpoint === '' && num === calc.checkpointVals.length) {
+    $('.final-checkpoint-message').show();
+  }
+
   var len = checkpoint.length;
   for (var i = 0; i < len; i++) {
     if (isNaN(parseInt(checkpoint.charAt(i))) &&
@@ -108,6 +114,8 @@ calc.setCheckpoint = function(that) {
       if (startTime === '') {
         calc.startTimeField.val(data.start_time);
       }
+
+      var len = calc.checkpointVals.length;
 
       if (checkpoint === '') {
         openField.val('Open time');

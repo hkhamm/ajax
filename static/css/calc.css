@@ -21,3 +21,7 @@
 .add-button {
   border-radius: 4px;
 }
+
+.final-checkpoint-message {
+  color: red;
+}

@@ -28,10 +28,6 @@ calc.isNewSession = true;
 calc.checkpoints = [];
 calc.checkpointCount = 1;
 
-// TODO last checkpoint between the brevet distance and that distance plus 10%
-// TODO rewrite to use Checkpoint class, use class to find out which is last
-// TODO reset checkpoints after change is units
-
 /**
  * Sets a checkpoint's open and close datetimes.
  */
@@ -49,29 +45,9 @@ calc.setCheckpoint = function(that) {
 
   calc.checkpointVals[num - 1] = that.val();
 
-  if (checkpoint >= distance && num != 2 &&
-      !$('#alert_placeholder').find('#checkpointAlert' + num).length) {
-    calc.alert('It looks like you may have multiple final checkpoints.',
-    'checkpointAlert' + num);
-  }
+  calc.checkForMultiFinals(checkpoint, num - 1);
 
-  if (checkpoint >= distance) {
-    $('.final-checkpoint-message').hide();
-  } else if (checkpoint === '' && num === calc.checkpointVals.length) {
-    $('.final-checkpoint-message').show();
-  }
-
-  var len = checkpoint.length;
-  for (var i = 0; i < len; i++) {
-    if (isNaN(parseInt(checkpoint.charAt(i))) &&
-        !$('#alert_placeholder').find('#checkpointAlert' + num).length) {
-      calc.alert('Checkpoint '+ num + '\'s distance is invalid.' +
-      ' It must be a number and within the valid distance interval.',
-      'checkpointAlert' + num);
-      // highlight bad fields?
-      break;
-    }
-  }
+  calc.checkForLetters(checkpoint, num);
 
   $.getJSON($SCRIPT_ROOT + '/_calc_date_times', {
     checkpoint: checkpoint,
@@ -81,20 +57,9 @@ calc.setCheckpoint = function(that) {
     units: units,
     dates: dates
   }, function(data) {
-    if (!data.is_valid_checkpoint &&
-        !$('#alert_placeholder').find('#checkpointAlert' + num).length) {
-      calc.alert('Checkpoint '+ num + '\'s distance is invalid.' +
-        ' It must be a number and within the valid distance interval.',
-        'checkpointAlert' + num);
-        // highlight bad fields?
-    } else if (data.is_over_10p &&
-          !$('#alert_placeholder').find('#finalCheckpointAlert' + num).length) {
-      calc.alert('Checkpoint '+ num + '\'s distance is potentially invalid.' +
-        ' While checkpoints greater than 20% of the brevet distance can be ok' +
-        ', ideally they are no more that 10% greater than the brevet' +
-        ' distance.',
-        'finalCheckpointAlert' + num);
-    } else {
+    if (calc.isValidDistance(data, num)) {
+      calc.checkForFinalCheckpoint(checkpoint, distance, num);
+
       calc.addCheckpoint(that);
 
       if (calc.isNewSession) {
@@ -114,8 +79,6 @@ calc.setCheckpoint = function(that) {
       if (startTime === '') {
         calc.startTimeField.val(data.start_time);
       }
-
-      var len = calc.checkpointVals.length;
 
       if (checkpoint === '') {
         openField.val('Open time');
@@ -183,7 +146,7 @@ calc.resetCheckpoints = function() {
 
 /**
  * Adds a checkpoint to the {@checkpoints} array.
- * @checkpoint {object} The checkpoint to add.
+ * @param checkpoint The checkpoint to add.
  */
 calc.addCheckpoint = function(checkpoint) {
   var num = checkpoint.parents('.form-group').find('.checkpoint-label').text();
@@ -193,8 +156,86 @@ calc.addCheckpoint = function(checkpoint) {
 };
 
 /**
+ * Checks if the new checkpoint has letters instead of numbers in the distance.
+ * @param checkpoint the new checkpoint's distance.
+ * @param num the new checkpoint's number.
+ */
+calc.checkForLetters = function(checkpoint, num) {
+  var len = checkpoint.length;
+  for (var i = 0; i < len; i++) {
+    if (isNaN(parseInt(checkpoint.charAt(i))) &&
+        !$('#alert_placeholder').find('#checkpointAlert' + num).length) {
+      calc.alert('Checkpoint '+ num + '\'s distance is invalid.' +
+      ' It must be a number and within the valid distance interval.',
+      'checkpointAlert' + num);
+      // highlight bad fields?
+      break;
+    }
+  }
+};
+
+/**
+ * Checks for a final checkpoint and hides or shows the message.
+ * @param checkpoint the new checkpoint's distance.
+ * @param distance the brevet distance.
+ * @param num the new checkpoint's number.
+ */
+calc.checkForFinalCheckpoint = function(checkpoint, distance, num) {
+  if (checkpoint >= distance) {
+    $('.final-checkpoint-message').hide();
+  } else if (checkpoint === '' && num === calc.checkpointVals.length) {
+    $('.final-checkpoint-message').show();
+  }
+};
+
+/**
+ * Check for multiple final checkpoints.
+ * @param checkpoint the new 's checkpoint's distance.
+ * @param num the number of the previous checkpoint.
+ */
+calc.checkForMultiFinals = function(checkpoint, num) {
+  var length = calc.checkpoints.length;
+  for (var i = 0; i < length; i++) {
+    if (calc.checkpoints[i] !== undefined) {
+      var thisNum = parseInt(calc.getCheckpointNum(calc.checkpoints[i]), 10);
+
+      console.log('num ' + num);
+      console.log('thisNum ' + thisNum);
+      console.log('equal vals ' + (calc.checkpoints[i].val() >= checkpoint));
+
+      if (num === thisNum && calc.checkpoints[i].val() >= checkpoint &&
+          !$('#alert_placeholder').find('#checkpointAlert' + num).length) {
+        calc.alert('It looks like you may have multiple final checkpoints.',
+          'checkpointAlert' + num);
+      }
+    }
+  }
+};
+
+calc.isValidDistance = function(data, num) {
+  var valid = true;
+  if (!data.is_valid_checkpoint &&
+      !$('#alert_placeholder').find('#checkpointAlert' + num).length) {
+    calc.alert('Checkpoint '+ num + '\'s distance is invalid.' +
+      ' It must be a number and within the valid distance interval.',
+      'checkpointAlert' + num);
+      // highlight bad fields?
+    valid = false;
+  } else if (data.is_over_10p &&
+        !$('#alert_placeholder').find('#finalCheckpointAlert' + num).length) {
+    calc.alert('Checkpoint ' + num + '\'s distance is potentially invalid.' +
+      ' While checkpoints greater than 20% of the brevet distance can be ok' +
+      ', ideally they are no more that 10% greater than the brevet' +
+      ' distance.',
+      'finalCheckpointAlert' + num);
+    valid = false;
+  }
+  return valid;
+};
+
+/**
  * Gets a checkpoint's number.
- * @checkpoint {object} The checkpoint.
+ * @param checkpoint The checkpoint.
  */
 calc.getCheckpointNum = function(checkpoint) {
   var num = checkpoint.parents('.form-group').find('.checkpoint-label').text();
@@ -203,8 +244,8 @@ calc.getCheckpointNum = function(checkpoint) {
 
 /**
  * Creates a Bootstrap alert.
- * @message {string} The alert message.
- * @alert_type {string) The alert type.
+ * @param message The alert message.
+ * @param alert_type The alert type.
  */
 calc.alert = function(message, alert_type) {
   var alertMsg = '<div class="alert alert-warning alert-dismissible" \
@@ -257,7 +298,6 @@ $('#dates input:radio').change(function() {
 $('#units input:radio').change(function() {
   calc.resetCheckpoints();
 });
-
 
 /**
  * Listens for clicks on the add checkpoint button.

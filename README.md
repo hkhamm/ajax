@@ -38,4 +38,5 @@ Final checkpoint closing times:
 - 1000 km: 75H00
 
 Final checkpoints are allowed to be up to 20% over the the brevet distance, 
-however they still have the closing times listed above.
+however ideally they are no more than 10% over. Additionally, they still have
+ the closing times listed above.

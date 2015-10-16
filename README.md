@@ -30,6 +30,12 @@ a corresponding minimum and maximum speed. (see Speeds Table)
 
 ## Special Rules
 
-Final checkpoint closing times for 200 km and 400 km brevets:
-- 200 km: 13.5 hours rather than 13.33 hours
-- 400 km: 27 hours rather than 26.66 hours
+Final checkpoint closing times:
+- 200 km: 13H30
+- 300 km: 20H0
+- 400 km: 27H00
+- 600 km: 40H00
+- 1000 km: 75H00
+
+Final checkpoints are allowed to be up to 20% over the the brevet distance, 
+however they still have the closing times listed above.

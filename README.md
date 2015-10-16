@@ -32,7 +32,7 @@ a corresponding minimum and maximum speed. (see Speeds Table)
 
 Final checkpoint closing times:
 - 200 km: 13H30
-- 300 km: 20H0
+- 300 km: 20H00
 - 400 km: 27H00
 - 600 km: 40H00
 - 1000 km: 75H00

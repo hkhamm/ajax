@@ -258,9 +258,12 @@ def get_date_time(data, speed, time_type):
     6) Convert total into hours and minutes
     7) Add hours and minutes to the starting datetime
 
-    Final checkpoint closing times:
-    - 200 km: 13.5 hours rather than 13.33 hours
-    - 400 km: 27 hours rather than 26.66 hours
+    Final checkpoint closing times in hours after start time:
+    - 200 km: 13H30
+    - 300 km: 20H00
+    - 400 km: 27H00
+    - 600 km: 40H00
+    - 1000 km: 75H00
 
     :param data: speeds, distance, checkpoint, start_date, start_time
     :param speed: key into the speeds dict

@@ -30,9 +30,6 @@ calc.checkpoints = [];
 calc.checkpointCount = 1;
 calc.units = 'km';
 
-// TODO look at everything that deals with validation and see if it works
-// TODO ^ with miles
-
 /**
  * Sets a checkpoint's open and close datetimes.
  */

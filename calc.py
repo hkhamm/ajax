@@ -294,7 +294,6 @@ def get_date_time(data, speed, time_type):
     if is_final and distance <= checkpoint <= distance_max:
         hours = times[distance][time_type]['hours']
         mins = times[distance][time_type]['min']
-        print('{}H{}'.format(hours, mins))
     else:
         total = 0
 

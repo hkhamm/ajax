@@ -285,13 +285,7 @@ def get_date_time(data, speed, time_type):
               '1000': {'low': 600, 'min': 11.428, 'max': 28},
               '1300': {'low': 1000, 'min': 13.333, 'max': 26}}
 
-    is_final = False
-
-    for time in times:
-        if distance == int(time):
-            is_final = True
-
-    if is_final and distance <= checkpoint <= distance_max:
+    if distance in times and distance <= checkpoint <= distance_max:
         hours = times[distance][time_type]['hours']
         mins = times[distance][time_type]['min']
     else:

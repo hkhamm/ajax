@@ -297,17 +297,16 @@ def get_date_time(data, speed, time_type):
         print('{}H{}'.format(hours, mins))
     else:
         total = 0
-        ch = checkpoint
 
-        while ch:
-            for time in speeds:
-                if speeds[time]['low'] < ch <= int(time):
-                    tmp = ch - speeds[time]['low']
-                    if time != '200':
-                        ch -= tmp
+        while checkpoint:
+            for dist in speeds:
+                if speeds[dist]['low'] < checkpoint <= int(dist):
+                    tmp = checkpoint - speeds[dist]['low']
+                    if dist != '200':
+                        checkpoint -= tmp
                     else:
-                        ch = 0
-                    total += tmp / speeds[time][speed]
+                        checkpoint = 0
+                    total += tmp / speeds[dist][speed]
                     break
 
         hours = int(total)

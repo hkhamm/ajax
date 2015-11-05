@@ -68,15 +68,7 @@ def calc_times():
             'start_time': request.args.get('startTime', 0, type=str),
             'checkpoint': request.args.get('checkpoint', 0, type=int),
             'units': request.args.get('units', 0, type=str),
-            'dates': request.args.get('dates', 0, type=str),
-            'speeds': {
-                '200': {'low': 0, 'min': 15, 'max': 34},
-                '300': {'low': 200, 'min': 15, 'max': 32},
-                '400': {'low': 200, 'min': 15, 'max': 32},
-                '600': {'low': 400, 'min': 15, 'max': 30},
-                '1000': {'low': 600, 'min': 11.428, 'max': 28},
-                '1300': {'low': 1000, 'min': 13.333, 'max': 26},
-            }}
+            'dates': request.args.get('dates', 0, type=str)}
 
     if data['units'] == 'miles':
         conv_fac = 0.621371
@@ -87,7 +79,6 @@ def calc_times():
     distance_max = data['distance'] + (data['distance'] * 0.2)
     distance_max_10 = data['distance'] + (data['distance'] * 0.1)
     checkpoint = data['checkpoint']
-    speeds = data['speeds']
     is_valid_checkpoint = True
     is_over_10p = False
 
@@ -270,7 +261,6 @@ def get_date_time(data, speed, time_type):
     :param time_type: either open or close
     :return: an arrow datetime
     """
-    speeds = data['speeds']
     distance = data['distance']
     distance_max = distance + (distance * 0.2)
     checkpoint = data['checkpoint']
@@ -288,34 +278,37 @@ def get_date_time(data, speed, time_type):
              1000: {'open': {'hours': 33, 'min': 5},
                     'close': {'hours': 75, 'min': 0}}}
 
-    if times[distance]:
-        if distance <= checkpoint <= distance_max:
-            hours = times[distance][time_type]['hours']
-            mins = times[distance][time_type]['min']
+    speeds = {'200': {'low': 0, 'min': 15, 'max': 34},
+              '300': {'low': 200, 'min': 15, 'max': 32},
+              '400': {'low': 200, 'min': 15, 'max': 32},
+              '600': {'low': 400, 'min': 15, 'max': 30},
+              '1000': {'low': 600, 'min': 11.428, 'max': 28},
+              '1300': {'low': 1000, 'min': 13.333, 'max': 26}}
+
+    is_final = False
+
+    for time in times:
+        if distance == int(time):
+            is_final = True
+
+    if is_final and distance <= checkpoint <= distance_max:
+        hours = times[distance][time_type]['hours']
+        mins = times[distance][time_type]['min']
+        print('{}H{}'.format(hours, mins))
     else:
         total = 0
+        ch = checkpoint
 
-        while checkpoint:
-            if 0 < checkpoint <= 200:
-                tmp = checkpoint
-                checkpoint = 0
-                total += tmp / speeds['200'][speed]
-            elif 200 < checkpoint <= 400:
-                tmp = checkpoint - 200
-                checkpoint -= tmp
-                total += tmp / speeds['400'][speed]
-            elif 400 < checkpoint <= 600:
-                tmp = checkpoint - 400
-                checkpoint -= tmp
-                total += tmp / speeds['600'][speed]
-            elif 600 < checkpoint <= 1000:
-                tmp = checkpoint - 600
-                checkpoint -= tmp
-                total += tmp / speeds['1000'][speed]
-            elif 1000 < checkpoint <= 1300:
-                tmp = checkpoint - 1000
-                checkpoint -= tmp
-                total += tmp / speeds['1300'][speed]
+        while ch:
+            for time in speeds:
+                if speeds[time]['low'] < ch <= int(time):
+                    tmp = ch - speeds[time]['low']
+                    if time != '200':
+                        ch -= tmp
+                    else:
+                        ch = 0
+                    total += tmp / speeds[time][speed]
+                    break
 
         hours = int(total)
         mins = round((total - hours) * 60)

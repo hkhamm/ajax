@@ -277,41 +277,22 @@ def get_date_time(data, speed, time_type):
     start_date = data['start_date']
     start_time = data['start_time']
 
-    if distance == 200 and 200 <= checkpoint <= distance_max:
-        if time_type == 'close':
-            hours = 13
-            mins = 30
-        else:
-            hours = 5
-            mins = 53
-    elif distance == 300 and 300 <= checkpoint <= distance_max:
-        if time_type == 'close':
-            hours = 20
-            mins = 0
-        else:
-            hours = 9
-            mins = 0
-    elif distance == 400 and 400 <= checkpoint <= distance_max:
-        if time_type == 'close':
-            hours = 27
-            mins = 0
-        else:
-            hours = 12
-            mins = 8
-    elif distance == 600 and 600 <= checkpoint <= distance_max:
-        if time_type == 'close':
-            hours = 40
-            mins = 0
-        else:
-            hours = 18
-            mins = 48
-    elif distance == 1000 and 1000 <= checkpoint <= distance_max:
-        if time_type == 'close':
-            hours = 75
-            mins = 0
-        else:
-            hours = 33
-            mins = 5
+    times = {200: {'open': {'hours': 5, 'min': 53},
+                   'close': {'hours': 13, 'min': 30}},
+             300: {'open': {'hours': 9, 'min': 0},
+                   'close': {'hours': 20, 'min': 0}},
+             400: {'open': {'hours': 12, 'min': 8},
+                   'close': {'hours': 27, 'min': 0}},
+             600: {'open': {'hours': 18, 'min': 48},
+                   'close': {'hours': 40, 'min': 0}},
+             1000: {'open': {'hours': 33, 'min': 5},
+                    'close': {'hours': 75, 'min': 0}}}
+
+    if times[distance]:
+        if distance <= checkpoint <= distance_max:
+            hours = times[distance][time_type]['hours']
+            mins = times[distance][time_type]['min']
+            print('{}H{}'.format(hours, mins))
     else:
         total = 0
 
